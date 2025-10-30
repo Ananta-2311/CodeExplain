@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .controller.explanation_controller import router as explanation_router
-from .view.main_view import router as view_router
+from controller.explanation_controller import router as explanation_router
+from view.main_view import router as view_router
 
 app = FastAPI(title="CodeMuse API")
 

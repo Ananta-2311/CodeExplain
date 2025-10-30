@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
-from ..model.parser_model import ParserModel
+from model.parser_model import ParserModel
 
 
 router = APIRouter(prefix="/explain", tags=["explain"])
