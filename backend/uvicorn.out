@@ -1,19 +1,6 @@
-INFO:     Started server process [63569]
+INFO:     Started server process [6640]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
-INFO:     127.0.0.1:53725 - "GET /api/search?query=Hey HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:53915 - "GET /api/search?query=interstellar HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:53930 - "GET /api/search?query=interstellar HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:53942 - "GET /api/search?query=interstellar HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:53945 - "GET /api/search?query=interstellar HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:53948 - "GET /api/search?query=interstellar HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:53960 - "GET /api/search?query=interstellar HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:54159 - "GET /api/search?query=Hey HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:54161 - "GET /api/search?query=Hey HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:54162 - "GET /api/search?query=Hey HTTP/1.1" 404 Not Found
-INFO:     127.0.0.1:54320 - "GET /api/search?query=Interstellar HTTP/1.1" 404 Not Found
-INFO:     Shutting down
-INFO:     Waiting for application shutdown.
-INFO:     Application shutdown complete.
-INFO:     Finished server process [63569]
+INFO:     127.0.0.1:53091 - "POST /explain HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:53094 - "POST /explain HTTP/1.1" 500 Internal Server Error

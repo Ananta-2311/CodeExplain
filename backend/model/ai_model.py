@@ -177,3 +177,71 @@ class AIModel:
 
         return response.choices[0].message.content.strip()
 
+    def explain_ast_node(
+        self,
+        node: Dict[str, Any],
+        source_code: Optional[str] = None,
+        detail_level: str = "summary",
+    ) -> Dict[str, Any]:
+        """Generate explanation for a single AST node (class, function, etc.).
+
+        Args:
+            node: Single AST node dict (from parser)
+            source_code: Optional original source code for context
+            detail_level: "summary", "brief", or "detailed"
+
+        Returns:
+            Dict with "ok", "explanation", and optional "error" fields
+        """
+        if not self.rate_limiter.acquire():
+            wait = self.rate_limiter.wait_time()
+            return {
+                "ok": False,
+                "error": "rate_limit_exceeded",
+                "message": f"Rate limit exceeded. Please wait {wait:.1f} seconds.",
+            }
+
+        try:
+            node_json = json.dumps(node, indent=2)
+            node_type = node.get("type", "unknown")
+            node_name = node.get("name", "unnamed")
+
+            # Build context
+            context = f"Here is a {node_type} named '{node_name}' from Python code:\n\n{node_json}"
+            if source_code:
+                # Try to extract relevant code section if we have line numbers
+                start_line = node.get("start")
+                end_line = node.get("end")
+                if start_line and end_line and source_code:
+                    lines = source_code.split("\n")
+                    relevant_code = "\n".join(lines[start_line - 1 : end_line])
+                    context += f"\n\nRelevant source code:\n\n```python\n{relevant_code}\n```"
+
+            messages = [
+                {
+                    "role": "system",
+                    "content": (
+                        f"You are a code explanation assistant. "
+                        f"Explain this {node_type} in technical detail. "
+                        f"Focus on what it does, its parameters/attributes, and its purpose."
+                    ),
+                },
+                {"role": "user", "content": context},
+            ]
+
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                max_tokens=min(self.max_tokens_per_request, 500 if detail_level == "summary" else 1000),
+                temperature=0.3,
+            )
+
+            return {"ok": True, "explanation": response.choices[0].message.content.strip()}
+
+        except Exception as exc:
+            return {
+                "ok": False,
+                "error": "generation_failed",
+                "message": str(exc),
+            }
+
