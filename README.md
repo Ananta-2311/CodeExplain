@@ -1,4 +1,4 @@
-CodeExplain / CodeMuse – Monorepo Scaffold
+CodeExplain / CodeMuse
 
 Structure
 
