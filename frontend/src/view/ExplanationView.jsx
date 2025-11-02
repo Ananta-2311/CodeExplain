@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import CodeVisualization from './CodeVisualization.jsx';
 
 const API_BASE_URL = 'http://localhost:8000'; // Default FastAPI port
 
@@ -200,59 +201,75 @@ export default function ExplanationView() {
         </div>
       )}
 
-      {/* Explanation Results */}
+      {/* Explanation Results and Visualization */}
       {explanationData && (
         <div style={{ marginTop: '24px' }}>
-          <h2 style={{ marginBottom: '16px', color: '#333' }}>Explanation</h2>
-          
-          {/* Overview Card */}
-          {explanationData.overview && (
-            <div style={{ marginBottom: '24px', border: '1px solid #e0e0e0', borderRadius: '8px', overflow: 'hidden' }}>
-              <div
-                style={{
-                  padding: '16px',
-                  backgroundColor: '#e3f2fd',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                }}
-                onClick={() => toggleCard('overview')}
-              >
-                <div style={{ fontWeight: 'bold', fontSize: '16px' }}>
-                  📋 Overview
-                </div>
-                <span style={{ fontSize: '18px' }}>
-                  {expandedCards.has('overview') ? '▼' : '▶'}
-                </span>
-              </div>
-              {expandedCards.has('overview') && (
-                <div style={{ padding: '16px', backgroundColor: '#fff' }}>
-                  <div style={{ 
-                    padding: '12px', 
-                    backgroundColor: '#f9f9f9', 
-                    borderRadius: '6px',
-                    lineHeight: '1.6',
-                    whiteSpace: 'pre-wrap'
-                  }}>
-                    {explanationData.overview}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))',
+            gap: '24px',
+            marginBottom: '32px',
+          }}>
+            {/* Left Column: Explanations */}
+            <div style={{ minWidth: 0 }}>
+              <h2 style={{ marginBottom: '16px', color: '#333' }}>Explanation</h2>
+              
+              {/* Overview Card */}
+              {explanationData.overview && (
+                <div style={{ marginBottom: '24px', border: '1px solid #e0e0e0', borderRadius: '8px', overflow: 'hidden' }}>
+                  <div
+                    style={{
+                      padding: '16px',
+                      backgroundColor: '#e3f2fd',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                    }}
+                    onClick={() => toggleCard('overview')}
+                  >
+                    <div style={{ fontWeight: 'bold', fontSize: '16px' }}>
+                      📋 Overview
+                    </div>
+                    <span style={{ fontSize: '18px' }}>
+                      {expandedCards.has('overview') ? '▼' : '▶'}
+                    </span>
                   </div>
+                  {expandedCards.has('overview') && (
+                    <div style={{ padding: '16px', backgroundColor: '#fff' }}>
+                      <div style={{ 
+                        padding: '12px', 
+                        backgroundColor: '#f9f9f9', 
+                        borderRadius: '6px',
+                        lineHeight: '1.6',
+                        whiteSpace: 'pre-wrap'
+                      }}>
+                        {explanationData.overview}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Structured Explanations */}
+              {explanationData.explanations && Object.keys(explanationData.explanations).length > 0 && (
+                <div>
+                  <h3 style={{ marginBottom: '16px', color: '#555' }}>Code Structure</h3>
+                  {Object.entries(explanationData.explanations).map(([name, data]) =>
+                    renderExplanationCard(name, data)
+                  )}
                 </div>
               )}
             </div>
-          )}
 
-          {/* Structured Explanations */}
-          {explanationData.explanations && Object.keys(explanationData.explanations).length > 0 && (
-            <div>
-              <h3 style={{ marginBottom: '16px', color: '#555' }}>Code Structure</h3>
-              {Object.entries(explanationData.explanations).map(([name, data]) =>
-                renderExplanationCard(name, data)
-              )}
+            {/* Right Column: Visualization */}
+            <div style={{ minWidth: 0 }}>
+              <h2 style={{ marginBottom: '16px', color: '#333' }}>Data Flow Visualization</h2>
+              <CodeVisualization code={code} />
             </div>
-          )}
+          </div>
 
-          {/* Raw Code Display with Syntax Highlighting */}
+          {/* Raw Code Display with Syntax Highlighting - Full Width */}
           {code && (
             <div style={{ marginTop: '32px' }}>
               <h3 style={{ marginBottom: '16px', color: '#555' }}>Your Code</h3>
