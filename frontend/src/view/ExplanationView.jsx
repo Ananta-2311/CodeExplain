@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import CodeVisualization from './CodeVisualization.jsx';
+import SuggestionsView from './SuggestionsView.jsx';
 
 const API_BASE_URL = 'http://localhost:8000'; // Default FastAPI port
 
@@ -267,6 +268,11 @@ export default function ExplanationView() {
               <h2 style={{ marginBottom: '16px', color: '#333' }}>Data Flow Visualization</h2>
               <CodeVisualization code={code} />
             </div>
+          </div>
+
+          {/* Suggestions Section - Full Width */}
+          <div style={{ marginTop: '32px' }}>
+            <SuggestionsView code={code} shouldFetch={true} />
           </div>
 
           {/* Raw Code Display with Syntax Highlighting - Full Width */}
