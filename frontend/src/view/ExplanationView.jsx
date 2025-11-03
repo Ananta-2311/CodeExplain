@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -7,12 +7,26 @@ import SuggestionsView from './SuggestionsView.jsx';
 
 const API_BASE_URL = 'http://localhost:8000'; // Default FastAPI port
 
-export default function ExplanationView() {
-  const [code, setCode] = useState('');
+export default function ExplanationView({ initialCode = '', autoRun = false, onAutoRunConsumed }) {
+  const [code, setCode] = useState(initialCode || '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [explanationData, setExplanationData] = useState(null);
   const [expandedCards, setExpandedCards] = useState(new Set());
+
+  useEffect(() => {
+    if (typeof initialCode === 'string') {
+      setCode(initialCode)
+    }
+  }, [initialCode])
+
+  useEffect(() => {
+    if (autoRun && (initialCode || code)) {
+      handleGenerateExplanation()
+      if (onAutoRunConsumed) onAutoRunConsumed()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoRun])
 
   const toggleCard = (path) => {
     const newExpanded = new Set(expandedCards);
@@ -46,6 +60,17 @@ export default function ExplanationView() {
         setExplanationData(response.data);
         // Auto-expand overview
         setExpandedCards(new Set(['overview']));
+
+        // Save to history
+        try {
+          await axios.post(`${API_BASE_URL}/history`, {
+            code: code,
+            response: response.data,
+            title: undefined,
+          })
+        } catch (e) {
+          // non-fatal
+        }
       } else {
         setError('Failed to generate explanation. Please try again.');
       }

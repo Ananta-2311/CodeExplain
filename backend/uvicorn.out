@@ -4,3 +4,9 @@ INFO:     Application startup complete.
 INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
 INFO:     127.0.0.1:53091 - "POST /explain HTTP/1.1" 400 Bad Request
 INFO:     127.0.0.1:53094 - "POST /explain HTTP/1.1" 500 Internal Server Error
+INFO:     127.0.0.1:64028 - "GET /api/search?query=Hey HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:64029 - "GET /api/search?query=Hey HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:64045 - "GET /api/search?query=Hey HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:64047 - "GET /api/search?query=Hey HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:64049 - "GET /api/search?query=Hey HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:64051 - "GET /api/search?query=Hey HTTP/1.1" 404 Not Found
