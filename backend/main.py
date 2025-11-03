@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from controller.explanation_controller import router as explanation_router
 from controller.visualization_controller import router as visualization_router
 from controller.suggestion_controller import router as suggestion_router
+from controller.history_controller import router as history_router
 from view.main_view import router as view_router
 
 app = FastAPI(title="CodeMuse API")
@@ -24,6 +25,7 @@ def health_check():
 app.include_router(explanation_router)
 app.include_router(visualization_router)
 app.include_router(suggestion_router)
+app.include_router(history_router)
 app.include_router(view_router)
 
 
