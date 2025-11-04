@@ -1,13 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { vscDarkPlus, github, atomOneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { useSettings } from '../context/SettingsContext';
 import CodeVisualization from './CodeVisualization.jsx';
 import SuggestionsView from './SuggestionsView.jsx';
 
 const API_BASE_URL = 'http://localhost:8000'; // Default FastAPI port
 
+const THEME_STYLES = {
+  vscDarkPlus,
+  github,
+  atomOneDark,
+  default: vscDarkPlus,
+};
+
 export default function ExplanationView({ initialCode = '', autoRun = false, onAutoRunConsumed }) {
+  const { settings } = useSettings();
   const [code, setCode] = useState(initialCode || '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -159,16 +168,36 @@ export default function ExplanationView({ initialCode = '', autoRun = false, onA
     );
   };
 
+  const themeStyles = {
+    light: {
+      bg: '#fff',
+      text: '#333',
+      border: '#e0e0e0',
+      cardBg: '#fff',
+      inputBg: '#fff',
+    },
+    dark: {
+      bg: '#1e1e1e',
+      text: '#e0e0e0',
+      border: '#444',
+      cardBg: '#2d2d2d',
+      inputBg: '#1e1e1e',
+    },
+  };
+
+  const theme = themeStyles[settings.theme] || themeStyles.light;
+  const codeTheme = THEME_STYLES[settings.editorTheme] || vscDarkPlus;
+
   return (
-    <div style={{ fontFamily: 'sans-serif', padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
-      <h1 style={{ marginBottom: '24px', color: '#333' }}>CodeMuse - Code Explanation</h1>
+    <div style={{ fontFamily: 'sans-serif', padding: '24px', maxWidth: '1200px', margin: '0 auto', backgroundColor: theme.bg }}>
+      <h1 style={{ marginBottom: '24px', color: theme.text }}>CodeMuse - Code Explanation</h1>
       
       {/* Code Input Section */}
       <div style={{ marginBottom: '24px' }}>
-        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#555' }}>
+        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: theme.text }}>
           Paste your Python code:
         </label>
-        <div style={{ position: 'relative', border: '2px solid #ddd', borderRadius: '8px', overflow: 'hidden' }}>
+        <div style={{ position: 'relative', border: `2px solid ${theme.border}`, borderRadius: '8px', overflow: 'hidden' }}>
           <textarea
             value={code}
             onChange={(e) => setCode(e.target.value)}
@@ -178,11 +207,13 @@ export default function ExplanationView({ initialCode = '', autoRun = false, onA
               minHeight: '200px',
               padding: '16px',
               fontFamily: 'Monaco, Consolas, "Courier New", monospace',
-              fontSize: '14px',
+              fontSize: `${settings.fontSize}px`,
               border: 'none',
               outline: 'none',
               resize: 'vertical',
               lineHeight: '1.5',
+              backgroundColor: theme.inputBg,
+              color: theme.text,
             }}
             spellCheck={false}
           />
@@ -306,11 +337,12 @@ export default function ExplanationView({ initialCode = '', autoRun = false, onA
               <h3 style={{ marginBottom: '16px', color: '#555' }}>Your Code</h3>
               <div style={{ border: '1px solid #e0e0e0', borderRadius: '8px', overflow: 'hidden' }}>
                 <SyntaxHighlighter
-                  language="python"
-                  style={vscDarkPlus}
+                  language={settings.language || 'python'}
+                  style={codeTheme}
                   customStyle={{
                     margin: 0,
                     borderRadius: '8px',
+                    fontSize: `${settings.fontSize}px`,
                   }}
                   showLineNumbers
                 >
