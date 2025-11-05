@@ -3,10 +3,11 @@ import { useSettings } from './context/SettingsContext'
 import ExplanationView from './view/ExplanationView.jsx'
 import HistoryView from './view/HistoryView.jsx'
 import SettingsModal from './view/SettingsModal.jsx'
+import AdminView from './view/AdminView.jsx'
 
 function AppContent() {
   const { settings } = useSettings()
-  const [activeTab, setActiveTab] = useState('explain') // 'explain' | 'history'
+  const [activeTab, setActiveTab] = useState('explain') // 'explain' | 'history' | 'admin'
   const [sharedCode, setSharedCode] = useState('')
   const [autoRun, setAutoRun] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -91,12 +92,29 @@ function AppContent() {
         >
           History
         </button>
+        <button
+          onClick={() => setActiveTab('admin')}
+          style={{
+            padding: '8px 12px',
+            border: `1px solid ${theme.border}`,
+            borderRadius: 6,
+            backgroundColor: activeTab === 'admin' ? '#007bff' : theme.cardBg,
+            color: activeTab === 'admin' ? '#fff' : theme.text,
+            cursor: 'pointer'
+          }}
+        >
+          Admin
+        </button>
       </div>
 
-      {activeTab === 'explain' ? (
+      {activeTab === 'explain' && (
         <ExplanationView initialCode={sharedCode} autoRun={autoRun} onAutoRunConsumed={() => setAutoRun(false)} />
-      ) : (
+      )}
+      {activeTab === 'history' && (
         <HistoryView onRerun={handleRerun} />
+      )}
+      {activeTab === 'admin' && (
+        <AdminView />
       )}
 
       <SettingsModal isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} />
