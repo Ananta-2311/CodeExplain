@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus, github, atomOneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { atomOneDark, github } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import { useSettings } from '../context/SettingsContext';
 import CodeVisualization from './CodeVisualization.jsx';
 import SuggestionsView from './SuggestionsView.jsx';

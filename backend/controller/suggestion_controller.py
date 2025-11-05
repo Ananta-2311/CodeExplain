@@ -106,7 +106,7 @@ class SuggestionGenerator:
                 '      "category": "refactoring|complexity|security|performance",\n'
                 '      "current_code": "Optional: current code snippet (if applicable)",\n'
                 '      "recommended_code": "Optional: recommended code snippet (if applicable)",\n'
-                '      "line_numbers": "Optional: line range like '5-10' (if applicable)"\n'
+                "      \"line_numbers\": \"Optional: line range like '5-10' (if applicable)\"\n"
                 "    }\n"
                 "  ]\n"
                 "}\n"
