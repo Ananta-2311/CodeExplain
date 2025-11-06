@@ -17,7 +17,7 @@ const THEME_STYLES = {
 };
 
 export default function ExplanationView({ initialCode = '', autoRun = false, onAutoRunConsumed }) {
-  const { settings } = useSettings();
+  const { settings, updateSettings } = useSettings();
   const [code, setCode] = useState(initialCode || '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -64,6 +64,7 @@ export default function ExplanationView({ initialCode = '', autoRun = false, onA
         code: code,
         detail_level: 'detailed',
         organize_by_structure: true,
+        language: settings.language || 'python',
       });
 
       if (response.data.ok) {
@@ -195,9 +196,29 @@ export default function ExplanationView({ initialCode = '', autoRun = false, onA
       
       {/* Code Input Section */}
       <div style={{ marginBottom: '24px' }}>
-        <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: theme.text }}>
-          Paste your Python code:
-        </label>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+          <label style={{ fontWeight: '600', color: theme.text }}>
+            Paste your code:
+          </label>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <span style={{ fontSize: 12, color: theme.text }}>Language</span>
+            <select
+              value={settings.language || 'python'}
+              onChange={(e) => updateSettings({ language: e.target.value })}
+              style={{
+                padding: '6px 10px',
+                border: `1px solid ${theme.border}`,
+                borderRadius: 6,
+                backgroundColor: theme.cardBg,
+                color: theme.text,
+              }}
+            >
+              <option value="python">Python</option>
+              <option value="javascript">JavaScript</option>
+              <option value="java">Java</option>
+            </select>
+          </div>
+        </div>
         <div style={{ position: 'relative', border: `2px solid ${theme.border}`, borderRadius: '8px', overflow: 'hidden' }}>
           <textarea
             value={code}

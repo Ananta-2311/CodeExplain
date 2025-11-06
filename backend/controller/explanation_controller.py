@@ -1,14 +1,13 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import Any, Dict, List
-from model.parser_model import ParserModel
+from typing import Any, Dict, List, Optional
+from model.lang_router import parse_code
 from model.ai_model import AIModel
 
 
 router = APIRouter(prefix="/explain", tags=["explain"])
 
 # Initialize models (singleton pattern)
-_parser = ParserModel()
 _ai_model: AIModel | None = None
 
 
@@ -34,6 +33,8 @@ class ExplainRequest(BaseModel):
     code: str
     detail_level: str = "summary"  # "summary", "brief", or "detailed"
     organize_by_structure: bool = True  # If True, organize explanations by class/function
+    language: Optional[str] = None  # optional hint: "python" | "javascript" | "java"
+    filename: Optional[str] = None
 
 
 def _extract_explainable_nodes(node: Dict[str, Any]) -> List[Dict[str, Any]]:
@@ -120,9 +121,9 @@ def explain(req: ExplainRequest):
     Accepts raw Python code, parses it into AST, and generates explanations
     organized by classes and functions. Handles syntax and API errors gracefully.
     """
-    # Step 1: Parse the code into AST
+    # Step 1: Parse the code into AST (multi-language)
     try:
-        parsed = _parser.parse(req.code)
+        parsed = parse_code(req.code, filename=req.filename, hint=req.language)
     except Exception as e:
         raise HTTPException(
             status_code=500,
