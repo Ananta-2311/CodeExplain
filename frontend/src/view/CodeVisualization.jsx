@@ -1,10 +1,35 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
 import * as d3 from 'd3';
+import { useSettings } from '../context/SettingsContext';
 
 const API_BASE_URL = 'http://localhost:8000';
 
 export default function CodeVisualization({ code, onGraphData }) {
+  const { settings } = useSettings();
+  
+  const themeStyles = {
+    light: {
+      bg: '#ffffff',
+      surface: '#f8f9fa',
+      surfaceElevated: '#ffffff',
+      text: '#1a1a1a',
+      textSecondary: '#6c757d',
+      border: '#dee2e6',
+      shadow: '0 2px 8px rgba(0,0,0,0.08)',
+    },
+    dark: {
+      bg: '#0d1117',
+      surface: '#161b22',
+      surfaceElevated: '#1c2128',
+      text: '#e6edf3',
+      textSecondary: '#8b949e',
+      border: '#30363d',
+      shadow: '0 2px 8px rgba(0,0,0,0.3)',
+    },
+  };
+
+  const theme = themeStyles[settings.theme] || themeStyles.light;
   const [graphData, setGraphData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -151,18 +176,21 @@ export default function CodeVisualization({ code, onGraphData }) {
   if (loading) {
     return (
       <div style={{ 
-        padding: '40px', 
+        padding: '60px 40px', 
         textAlign: 'center',
-        backgroundColor: '#f5f5f5',
-        borderRadius: '8px',
+        backgroundColor: theme.surfaceElevated,
+        borderRadius: '12px',
+        border: `1px solid ${theme.border}`,
+        boxShadow: theme.shadow,
         minHeight: '400px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center'
       }}>
         <div>
-          <div style={{ fontSize: '18px', marginBottom: '8px' }}>Generating visualization...</div>
-          <div style={{ color: '#666' }}>Analyzing code structure and dependencies</div>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔍</div>
+          <div style={{ fontSize: '18px', color: theme.text, marginBottom: '8px' }}>Generating visualization...</div>
+          <div style={{ color: theme.textSecondary }}>Analyzing code structure and dependencies</div>
         </div>
       </div>
     );
@@ -171,13 +199,17 @@ export default function CodeVisualization({ code, onGraphData }) {
   if (error) {
     return (
       <div style={{
-        padding: '20px',
-        backgroundColor: '#fee',
-        border: '1px solid #fcc',
-        borderRadius: '6px',
-        color: '#c00',
+        padding: '16px 20px',
+        backgroundColor: settings.theme === 'dark' ? '#3d1f1f' : '#fff5f5',
+        border: `1px solid ${theme.error || '#dc3545'}`,
+        borderRadius: '8px',
+        color: theme.error || '#dc3545',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px',
       }}>
-        <strong>Error:</strong> {error}
+        <span style={{ fontSize: '20px' }}>⚠️</span>
+        <div><strong>Error:</strong> {error}</div>
       </div>
     );
   }
@@ -185,17 +217,22 @@ export default function CodeVisualization({ code, onGraphData }) {
   if (!filteredData || !filteredData.nodes || filteredData.nodes.length === 0) {
     return (
       <div style={{ 
-        padding: '40px', 
+        padding: '60px 40px', 
         textAlign: 'center',
-        backgroundColor: '#f5f5f5',
-        borderRadius: '8px',
+        backgroundColor: theme.surfaceElevated,
+        borderRadius: '12px',
+        border: `1px solid ${theme.border}`,
+        boxShadow: theme.shadow,
         minHeight: '400px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center'
       }}>
-        <div style={{ color: '#666' }}>
-          {code ? 'No graph data available. Paste some code and generate an explanation.' : 'Enter code to visualize its structure'}
+        <div>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>📊</div>
+          <div style={{ color: theme.text, fontSize: '16px' }}>
+            {code ? 'No graph data available. Paste some code and generate an explanation.' : 'Enter code to visualize its structure'}
+          </div>
         </div>
       </div>
     );
@@ -203,16 +240,17 @@ export default function CodeVisualization({ code, onGraphData }) {
 
   return (
     <div style={{ 
-      border: '1px solid #e0e0e0', 
-      borderRadius: '8px', 
+      border: `1px solid ${theme.border}`, 
+      borderRadius: '12px', 
       overflow: 'hidden',
-      backgroundColor: '#fff',
+      backgroundColor: theme.surfaceElevated,
+      boxShadow: theme.shadow,
     }}>
       {/* Controls */}
       <div style={{
-        padding: '12px 16px',
-        backgroundColor: '#f5f5f5',
-        borderBottom: '1px solid #e0e0e0',
+        padding: '16px 20px',
+        backgroundColor: theme.surface,
+        borderBottom: `1px solid ${theme.border}`,
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -220,7 +258,7 @@ export default function CodeVisualization({ code, onGraphData }) {
         gap: '12px',
       }}>
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <label style={{ fontSize: '14px', fontWeight: '500', color: '#555' }}>
+          <label style={{ fontSize: '14px', fontWeight: 600, color: theme.text }}>
             Filter:
           </label>
           <select
@@ -232,12 +270,14 @@ export default function CodeVisualization({ code, onGraphData }) {
               setHighlightLinks(new Set());
             }}
             style={{
-              padding: '6px 12px',
-              border: '1px solid #ddd',
-              borderRadius: '4px',
+              padding: '8px 12px',
+              border: `1px solid ${theme.border}`,
+              borderRadius: '6px',
               fontSize: '14px',
-              backgroundColor: '#fff',
+              backgroundColor: theme.surfaceElevated,
+              color: theme.text,
               cursor: 'pointer',
+              fontWeight: 500,
             }}
           >
             <option value="all">All</option>
@@ -247,33 +287,40 @@ export default function CodeVisualization({ code, onGraphData }) {
           </select>
         </div>
         
-        <div style={{ fontSize: '12px', color: '#666' }}>
+        <div style={{ 
+          fontSize: '12px', 
+          color: theme.textSecondary,
+          backgroundColor: theme.surfaceElevated,
+          padding: '6px 12px',
+          borderRadius: '6px',
+          fontWeight: 500,
+        }}>
           {filteredData.nodes.length} nodes, {filteredData.links.length} edges
         </div>
       </div>
 
       {/* Legend */}
       <div style={{
-        padding: '8px 16px',
-        backgroundColor: '#fafafa',
-        borderBottom: '1px solid #e0e0e0',
+        padding: '12px 20px',
+        backgroundColor: theme.surface,
+        borderBottom: `1px solid ${theme.border}`,
         display: 'flex',
-        gap: '16px',
+        gap: '20px',
         fontSize: '12px',
         flexWrap: 'wrap',
       }}>
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <span style={{ fontWeight: '500', color: '#555' }}>Nodes:</span>
-          <span><span style={{ color: '#26a69a' }}>●</span> Function</span>
-          <span><span style={{ color: '#42a5f5' }}>●</span> Method</span>
-          <span><span style={{ color: '#ef5350' }}>●</span> Class</span>
-          <span><span style={{ color: '#ffa726' }}>●</span> Variable</span>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <span style={{ fontWeight: 600, color: theme.text }}>Nodes:</span>
+          <span style={{ color: theme.textSecondary }}><span style={{ color: '#26a69a' }}>●</span> Function</span>
+          <span style={{ color: theme.textSecondary }}><span style={{ color: '#42a5f5' }}>●</span> Method</span>
+          <span style={{ color: theme.textSecondary }}><span style={{ color: '#ef5350' }}>●</span> Class</span>
+          <span style={{ color: theme.textSecondary }}><span style={{ color: '#ffa726' }}>●</span> Variable</span>
         </div>
-        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-          <span style={{ fontWeight: '500', color: '#555' }}>Edges:</span>
-          <span><span style={{ color: '#42a5f5' }}>─</span> Calls</span>
-          <span><span style={{ color: '#ef5350' }}>─</span> Inherits</span>
-          <span><span style={{ color: '#66bb6a' }}>─</span> Contains</span>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <span style={{ fontWeight: 600, color: theme.text }}>Edges:</span>
+          <span style={{ color: theme.textSecondary }}><span style={{ color: '#42a5f5' }}>─</span> Calls</span>
+          <span style={{ color: theme.textSecondary }}><span style={{ color: '#ef5350' }}>─</span> Inherits</span>
+          <span style={{ color: theme.textSecondary }}><span style={{ color: '#66bb6a' }}>─</span> Contains</span>
         </div>
       </div>
 
@@ -333,16 +380,27 @@ export default function CodeVisualization({ code, onGraphData }) {
               }
             }}
             style={{
-              width: '36px',
-              height: '36px',
-              border: '1px solid #ddd',
-              borderRadius: '4px',
-              backgroundColor: '#fff',
+              width: '40px',
+              height: '40px',
+              border: `1px solid ${theme.border}`,
+              borderRadius: '8px',
+              backgroundColor: theme.surfaceElevated,
+              color: theme.text,
               cursor: 'pointer',
               fontSize: '18px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              transition: 'all 0.2s',
+              boxShadow: theme.shadow,
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = theme.surface;
+              e.target.style.borderColor = theme.primary;
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = theme.surfaceElevated;
+              e.target.style.borderColor = theme.border;
             }}
             title="Zoom in"
           >
@@ -355,16 +413,27 @@ export default function CodeVisualization({ code, onGraphData }) {
               }
             }}
             style={{
-              width: '36px',
-              height: '36px',
-              border: '1px solid #ddd',
-              borderRadius: '4px',
-              backgroundColor: '#fff',
+              width: '40px',
+              height: '40px',
+              border: `1px solid ${theme.border}`,
+              borderRadius: '8px',
+              backgroundColor: theme.surfaceElevated,
+              color: theme.text,
               cursor: 'pointer',
               fontSize: '18px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              transition: 'all 0.2s',
+              boxShadow: theme.shadow,
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = theme.surface;
+              e.target.style.borderColor = theme.primary;
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = theme.surfaceElevated;
+              e.target.style.borderColor = theme.border;
             }}
             title="Zoom out"
           >
@@ -377,16 +446,27 @@ export default function CodeVisualization({ code, onGraphData }) {
               }
             }}
             style={{
-              width: '36px',
-              height: '36px',
-              border: '1px solid #ddd',
-              borderRadius: '4px',
-              backgroundColor: '#fff',
+              width: '40px',
+              height: '40px',
+              border: `1px solid ${theme.border}`,
+              borderRadius: '8px',
+              backgroundColor: theme.surfaceElevated,
+              color: theme.text,
               cursor: 'pointer',
-              fontSize: '14px',
+              fontSize: '16px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              transition: 'all 0.2s',
+              boxShadow: theme.shadow,
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = theme.surface;
+              e.target.style.borderColor = theme.primary;
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = theme.surfaceElevated;
+              e.target.style.borderColor = theme.border;
             }}
             title="Fit to screen"
           >
@@ -398,39 +478,50 @@ export default function CodeVisualization({ code, onGraphData }) {
       {/* Node Details Panel */}
       {selectedNode && (
         <div style={{
-          padding: '16px',
-          backgroundColor: '#f9f9f9',
-          borderTop: '1px solid #e0e0e0',
+          padding: '20px',
+          backgroundColor: theme.surface,
+          borderTop: `1px solid ${theme.border}`,
         }}>
-          <div style={{ marginBottom: '8px' }}>
-            <strong style={{ fontSize: '16px', color: '#333' }}>{selectedNode.label}</strong>
-            <span style={{ marginLeft: '8px', color: '#666', fontSize: '14px' }}>
+          <div style={{ marginBottom: '12px' }}>
+            <strong style={{ fontSize: '18px', color: theme.text, fontWeight: 600 }}>{selectedNode.label}</strong>
+            <span style={{ marginLeft: '8px', color: theme.textSecondary, fontSize: '14px' }}>
               ({selectedNode.type})
             </span>
           </div>
-          <div style={{ fontSize: '12px', color: '#666', marginBottom: '8px' }}>
+          <div style={{ fontSize: '13px', color: theme.textSecondary, marginBottom: '8px' }}>
             Full name: {selectedNode.full_name}
           </div>
           {selectedNode.line && (
-            <div style={{ fontSize: '12px', color: '#666' }}>
+            <div style={{ fontSize: '13px', color: theme.textSecondary }}>
               Line: {selectedNode.line}
             </div>
           )}
           {selectedNode.bases && selectedNode.bases.length > 0 && (
-            <div style={{ fontSize: '12px', color: '#666', marginTop: '8px' }}>
+            <div style={{ fontSize: '13px', color: theme.textSecondary, marginTop: '12px' }}>
               Inherits from: {selectedNode.bases.join(', ')}
             </div>
           )}
           <button
             onClick={() => setSelectedNode(null)}
             style={{
-              marginTop: '12px',
-              padding: '6px 12px',
-              border: '1px solid #ddd',
-              borderRadius: '4px',
-              backgroundColor: '#fff',
+              marginTop: '16px',
+              padding: '8px 16px',
+              border: `1px solid ${theme.border}`,
+              borderRadius: '6px',
+              backgroundColor: theme.surfaceElevated,
+              color: theme.text,
               cursor: 'pointer',
-              fontSize: '12px',
+              fontSize: '13px',
+              fontWeight: 500,
+              transition: 'all 0.2s',
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = theme.surface;
+              e.target.style.borderColor = theme.primary;
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = theme.surfaceElevated;
+              e.target.style.borderColor = theme.border;
             }}
           >
             Close

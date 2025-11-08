@@ -8,7 +8,7 @@ import ShareView from './view/ShareView.jsx'
 
 function AppContent() {
   const { settings } = useSettings()
-  const [activeTab, setActiveTab] = useState('explain') // 'explain' | 'history' | 'admin' | 'share'
+  const [activeTab, setActiveTab] = useState('explain')
   const [shareToken, setShareToken] = useState(null)
   const [sharedCode, setSharedCode] = useState('')
   const [autoRun, setAutoRun] = useState(false)
@@ -28,21 +28,42 @@ function AppContent() {
     setSharedCode(code)
     setAutoRun(true)
     setActiveTab('explain')
-    // autoRun will be consumed by ExplanationView and then reset
   }
 
   const themeStyles = {
     light: {
-      bg: '#fff',
-      text: '#333',
-      border: '#e0e0e0',
-      cardBg: '#fff',
+      bg: '#ffffff',
+      surface: '#f8f9fa',
+      surfaceElevated: '#ffffff',
+      text: '#1a1a1a',
+      textSecondary: '#6c757d',
+      border: '#dee2e6',
+      borderLight: '#e9ecef',
+      primary: '#0066cc',
+      primaryHover: '#0052a3',
+      success: '#28a745',
+      error: '#dc3545',
+      warning: '#ffc107',
+      codeBg: '#f8f9fa',
+      shadow: '0 2px 8px rgba(0,0,0,0.08)',
+      shadowHover: '0 4px 12px rgba(0,0,0,0.12)',
     },
     dark: {
-      bg: '#1e1e1e',
-      text: '#e0e0e0',
-      border: '#444',
-      cardBg: '#2d2d2d',
+      bg: '#0d1117',
+      surface: '#161b22',
+      surfaceElevated: '#1c2128',
+      text: '#e6edf3',
+      textSecondary: '#8b949e',
+      border: '#30363d',
+      borderLight: '#21262d',
+      primary: '#58a6ff',
+      primaryHover: '#79c0ff',
+      success: '#3fb950',
+      error: '#f85149',
+      warning: '#d29922',
+      codeBg: '#0d1117',
+      shadow: '0 2px 8px rgba(0,0,0,0.3)',
+      shadowHover: '0 4px 12px rgba(0,0,0,0.4)',
     },
   }
 
@@ -50,87 +71,156 @@ function AppContent() {
 
   return (
     <div style={{ 
-      fontFamily: 'sans-serif', 
-      padding: 24,
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+      minHeight: '100vh',
       backgroundColor: theme.bg,
       color: theme.text,
-      minHeight: '100vh',
+      transition: 'background-color 0.2s, color 0.2s',
     }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <h1 style={{ marginTop: 0, marginBottom: 0 }}>CodeMuse</h1>
-        <button
-          onClick={() => setSettingsOpen(true)}
-          style={{
-            padding: '8px 12px',
-            border: `1px solid ${theme.border}`,
-            borderRadius: 6,
-            backgroundColor: theme.cardBg,
-            color: theme.text,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-          }}
-          title="Settings"
-        >
-          ⚙️ Settings
-        </button>
-      </div>
+      {/* Header */}
+      <header style={{
+        backgroundColor: theme.surface,
+        borderBottom: `1px solid ${theme.border}`,
+        padding: '16px 24px',
+        position: 'sticky',
+        top: 0,
+        zIndex: 100,
+        boxShadow: theme.shadow,
+      }}>
+        <div style={{ 
+          maxWidth: '1400px', 
+          margin: '0 auto',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <h1 style={{ 
+              margin: 0, 
+              fontSize: '24px',
+              fontWeight: 700,
+              background: `linear-gradient(135deg, ${theme.primary} 0%, ${settings.theme === 'dark' ? '#a5d8ff' : '#004085'} 100%)`,
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}>
+              CodeMuse
+            </h1>
+            <span style={{ 
+              fontSize: '14px', 
+              color: theme.textSecondary,
+              fontWeight: 500,
+            }}>
+              Learn Code Through AI Explanations
+            </span>
+          </div>
+          <button
+            onClick={() => setSettingsOpen(true)}
+            style={{
+              padding: '8px 16px',
+              border: `1px solid ${theme.border}`,
+              borderRadius: '8px',
+              backgroundColor: theme.surfaceElevated,
+              color: theme.text,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              fontSize: '14px',
+              fontWeight: 500,
+              transition: 'all 0.2s',
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = settings.theme === 'dark' ? '#21262d' : '#e9ecef'
+              e.target.style.borderColor = theme.primary
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = theme.surfaceElevated
+              e.target.style.borderColor = theme.border
+            }}
+            title="Settings"
+          >
+            <span>{settings.theme === 'dark' ? '🌙' : '☀️'}</span>
+            Settings
+          </button>
+        </div>
+      </header>
 
-      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-        <button
-          onClick={() => setActiveTab('explain')}
-          style={{
-            padding: '8px 12px',
-            border: `1px solid ${theme.border}`,
-            borderRadius: 6,
-            backgroundColor: activeTab === 'explain' ? '#007bff' : theme.cardBg,
-            color: activeTab === 'explain' ? '#fff' : theme.text,
-            cursor: 'pointer'
-          }}
-        >
-          Explain
-        </button>
-        <button
-          onClick={() => setActiveTab('history')}
-          style={{
-            padding: '8px 12px',
-            border: `1px solid ${theme.border}`,
-            borderRadius: 6,
-            backgroundColor: activeTab === 'history' ? '#007bff' : theme.cardBg,
-            color: activeTab === 'history' ? '#fff' : theme.text,
-            cursor: 'pointer'
-          }}
-        >
-          History
-        </button>
-        <button
-          onClick={() => setActiveTab('admin')}
-          style={{
-            padding: '8px 12px',
-            border: `1px solid ${theme.border}`,
-            borderRadius: 6,
-            backgroundColor: activeTab === 'admin' ? '#007bff' : theme.cardBg,
-            color: activeTab === 'admin' ? '#fff' : theme.text,
-            cursor: 'pointer'
-          }}
-        >
-          Admin
-        </button>
-      </div>
+      {/* Navigation Tabs */}
+      <nav style={{
+        backgroundColor: theme.surface,
+        borderBottom: `1px solid ${theme.border}`,
+        padding: '0 24px',
+      }}>
+        <div style={{ 
+          maxWidth: '1400px', 
+          margin: '0 auto',
+          display: 'flex',
+          gap: '4px',
+        }}>
+          {[
+            { id: 'explain', label: '📚 Explain Code', desc: 'Get AI explanations' },
+            { id: 'history', label: '📖 History', desc: 'Past sessions' },
+            { id: 'admin', label: '⚙️ Admin', desc: 'Dashboard' },
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              style={{
+                padding: '12px 20px',
+                border: 'none',
+                borderBottom: `3px solid ${activeTab === tab.id ? theme.primary : 'transparent'}`,
+                borderRadius: '8px 8px 0 0',
+                backgroundColor: activeTab === tab.id ? theme.surfaceElevated : 'transparent',
+                color: activeTab === tab.id ? theme.primary : theme.textSecondary,
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: activeTab === tab.id ? 600 : 500,
+                transition: 'all 0.2s',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+                gap: '2px',
+              }}
+              onMouseEnter={(e) => {
+                if (activeTab !== tab.id) {
+                  e.target.style.backgroundColor = theme.surfaceElevated
+                  e.target.style.color = theme.text
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (activeTab !== tab.id) {
+                  e.target.style.backgroundColor = 'transparent'
+                  e.target.style.color = theme.textSecondary
+                }
+              }}
+            >
+              <span>{tab.label}</span>
+              <span style={{ fontSize: '11px', opacity: 0.7 }}>{tab.desc}</span>
+            </button>
+          ))}
+        </div>
+      </nav>
 
-      {activeTab === 'explain' && (
-        <ExplanationView initialCode={sharedCode} autoRun={autoRun} onAutoRunConsumed={() => setAutoRun(false)} />
-      )}
-      {activeTab === 'history' && (
-        <HistoryView onRerun={handleRerun} />
-      )}
-      {activeTab === 'admin' && (
-        <AdminView />
-      )}
-      {activeTab === 'share' && shareToken && (
-        <ShareView token={shareToken} />
-      )}
+      {/* Main Content */}
+      <main style={{
+        maxWidth: '1400px',
+        margin: '0 auto',
+        padding: '32px 24px',
+      }}>
+        {activeTab === 'explain' && (
+          <ExplanationView initialCode={sharedCode} autoRun={autoRun} onAutoRunConsumed={() => setAutoRun(false)} />
+        )}
+        {activeTab === 'history' && (
+          <HistoryView onRerun={handleRerun} />
+        )}
+        {activeTab === 'admin' && (
+          <AdminView />
+        )}
+        {activeTab === 'share' && shareToken && (
+          <ShareView token={shareToken} />
+        )}
+      </main>
 
       <SettingsModal isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </div>
@@ -140,5 +230,3 @@ function AppContent() {
 export default function App() {
   return <AppContent />
 }
-
-
