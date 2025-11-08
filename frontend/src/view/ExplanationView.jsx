@@ -283,6 +283,72 @@ export default function ExplanationView({ initialCode = '', autoRun = false, onA
       {/* Explanation Results and Visualization */}
       {explanationData && (
         <div style={{ marginTop: '24px' }}>
+          {/* Export and Share Buttons */}
+          <div style={{ display: 'flex', gap: '12px', marginBottom: '16px', flexWrap: 'wrap' }}>
+            <button
+              onClick={async () => {
+                try {
+                  const res = await axios.post(`${API_BASE_URL}/export/markdown`, {
+                    code: code,
+                    explanation_data: { ...explanationData, generated_at: new Date().toISOString() },
+                    format: 'markdown',
+                  }, { responseType: 'blob' });
+                  const url = window.URL.createObjectURL(new Blob([res.data]));
+                  const link = document.createElement('a');
+                  link.href = url;
+                  link.setAttribute('download', 'code_explanation.md');
+                  document.body.appendChild(link);
+                  link.click();
+                  link.remove();
+                } catch (e) {
+                  alert('Failed to export: ' + (e.message || 'Unknown error'));
+                }
+              }}
+              style={{
+                padding: '8px 16px',
+                backgroundColor: theme.cardBg,
+                border: `1px solid ${theme.border}`,
+                borderRadius: '6px',
+                color: theme.text,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+              }}
+            >
+              📄 Export Markdown
+            </button>
+            <button
+              onClick={async () => {
+                try {
+                  const res = await axios.post(`${API_BASE_URL}/share`, {
+                    code: code,
+                    response: explanationData,
+                    expires_days: 30,
+                  });
+                  const url = res.data.url;
+                  await navigator.clipboard.writeText(url);
+                  alert('Share link copied to clipboard!\n' + url);
+                } catch (e) {
+                  alert('Failed to create share: ' + (e.message || 'Unknown error'));
+                }
+              }}
+              style={{
+                padding: '8px 16px',
+                backgroundColor: theme.cardBg,
+                border: `1px solid ${theme.border}`,
+                borderRadius: '6px',
+                color: theme.text,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+              }}
+            >
+              🔗 Share Session
+            </button>
+          </div>
+
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(500px, 1fr))',

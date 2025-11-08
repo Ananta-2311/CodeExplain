@@ -1,16 +1,28 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useSettings } from './context/SettingsContext'
 import ExplanationView from './view/ExplanationView.jsx'
 import HistoryView from './view/HistoryView.jsx'
 import SettingsModal from './view/SettingsModal.jsx'
 import AdminView from './view/AdminView.jsx'
+import ShareView from './view/ShareView.jsx'
 
 function AppContent() {
   const { settings } = useSettings()
-  const [activeTab, setActiveTab] = useState('explain') // 'explain' | 'history' | 'admin'
+  const [activeTab, setActiveTab] = useState('explain') // 'explain' | 'history' | 'admin' | 'share'
+  const [shareToken, setShareToken] = useState(null)
   const [sharedCode, setSharedCode] = useState('')
   const [autoRun, setAutoRun] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
+
+  // Check for share token in URL
+  useEffect(() => {
+    const path = window.location.pathname
+    const match = path.match(/^\/share\/(.+)$/)
+    if (match) {
+      setShareToken(match[1])
+      setActiveTab('share')
+    }
+  }, [])
 
   const handleRerun = (code) => {
     setSharedCode(code)
@@ -115,6 +127,9 @@ function AppContent() {
       )}
       {activeTab === 'admin' && (
         <AdminView />
+      )}
+      {activeTab === 'share' && shareToken && (
+        <ShareView token={shareToken} />
       )}
 
       <SettingsModal isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} />

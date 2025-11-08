@@ -6,6 +6,8 @@ from controller.suggestion_controller import router as suggestion_router
 from controller.history_controller import router as history_router
 from controller.settings_controller import router as settings_router
 from controller.admin_controller import router as admin_router
+from controller.export_controller import router as export_router
+from controller.share_controller import router as share_router
 from view.main_view import router as view_router
 from model.history_model import init_db, get_session, ApiLog
 import time
@@ -62,6 +64,8 @@ app.include_router(suggestion_router)
 app.include_router(history_router)
 app.include_router(settings_router)
 app.include_router(admin_router)
+app.include_router(export_router)
+app.include_router(share_router)
 app.include_router(view_router)
 
 
