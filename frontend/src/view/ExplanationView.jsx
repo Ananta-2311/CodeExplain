@@ -233,11 +233,18 @@ export default function ExplanationView({ initialCode = '', autoRun = false, onA
           fontSize: '36px', 
           fontWeight: 700, 
           marginBottom: '12px',
-          color: theme.text,
-          background: `linear-gradient(135deg, ${theme.primary} 0%, ${settings.theme === 'dark' ? '#a5d8ff' : '#004085'} 100%)`,
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          backgroundClip: 'text',
+          ...(settings.theme === 'dark' 
+            ? {
+                color: '#58a6ff', // Solid bright blue for dark mode - always visible
+              }
+            : {
+                background: `linear-gradient(135deg, ${theme.primary} 0%, #004085 100%)`,
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                color: theme.primary, // Fallback
+              }
+          ),
         }}>
           Code Explanation Platform
         </h1>

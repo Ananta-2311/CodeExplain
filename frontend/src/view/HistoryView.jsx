@@ -18,6 +18,7 @@ export default function HistoryView({ onRerun }) {
       border: '#dee2e6',
       primary: '#0066cc',
       primaryHover: '#0052a3',
+      error: '#dc3545',
       shadow: '0 2px 8px rgba(0,0,0,0.08)',
     },
     dark: {
@@ -29,6 +30,7 @@ export default function HistoryView({ onRerun }) {
       border: '#30363d',
       primary: '#58a6ff',
       primaryHover: '#79c0ff',
+      error: '#f85149',
       shadow: '0 2px 8px rgba(0,0,0,0.3)',
     },
   }

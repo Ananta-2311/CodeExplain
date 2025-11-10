@@ -16,6 +16,7 @@ export default function CodeVisualization({ code, onGraphData }) {
       text: '#1a1a1a',
       textSecondary: '#6c757d',
       border: '#dee2e6',
+      error: '#dc3545',
       shadow: '0 2px 8px rgba(0,0,0,0.08)',
     },
     dark: {
@@ -25,6 +26,7 @@ export default function CodeVisualization({ code, onGraphData }) {
       text: '#e6edf3',
       textSecondary: '#8b949e',
       border: '#30363d',
+      error: '#f85149',
       shadow: '0 2px 8px rgba(0,0,0,0.3)',
     },
   };

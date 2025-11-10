@@ -99,10 +99,18 @@ function AppContent() {
               margin: 0, 
               fontSize: '24px',
               fontWeight: 700,
-              background: `linear-gradient(135deg, ${theme.primary} 0%, ${settings.theme === 'dark' ? '#a5d8ff' : '#004085'} 100%)`,
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
+              ...(settings.theme === 'dark' 
+                ? {
+                    color: '#58a6ff', // Solid bright blue for dark mode - always visible
+                  }
+                : {
+                    background: `linear-gradient(135deg, ${theme.primary} 0%, #004085 100%)`,
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    backgroundClip: 'text',
+                    color: theme.primary, // Fallback
+                  }
+              ),
             }}>
               CodeMuse
             </h1>
