@@ -6,6 +6,7 @@ from typing import Any, Dict, Optional, Tuple
 from model.parser_model import ParserModel as PythonParserModel
 from model.js_parser_model import JSParserModel
 from model.java_parser_model import JavaParserModel
+from model.cpp_parser_model import CppParserModel
 
 
 def detect_language(source_code: str, filename: Optional[str] = None, hint: Optional[str] = None) -> str:
@@ -14,12 +15,14 @@ def detect_language(source_code: str, filename: Optional[str] = None, hint: Opti
         if h in ("py", "python"): return "python"
         if h in ("js", "javascript", "node"): return "javascript"
         if h in ("java",): return "java"
+        if h in ("cpp", "c++", "cxx", "cc"): return "cpp"
 
     if filename:
         fn = filename.lower()
         if fn.endswith('.py'): return "python"
         if fn.endswith('.js') or fn.endswith('.mjs') or fn.endswith('.cjs') or fn.endswith('.ts'): return "javascript"
         if fn.endswith('.java'): return "java"
+        if fn.endswith('.cpp') or fn.endswith('.cxx') or fn.endswith('.cc') or fn.endswith('.hpp') or fn.endswith('.h'): return "cpp"
 
     # Token heuristics
     code = source_code[:1000]
@@ -29,6 +32,8 @@ def detect_language(source_code: str, filename: Optional[str] = None, hint: Opti
         return "javascript"
     if re.search(r"\bpublic\s+(class|interface)\b", code) or re.search(r"\bstatic\s+void\s+main\b", code):
         return "java"
+    if re.search(r"#include\s*<", code) or re.search(r"using\s+namespace\s+std", code) or re.search(r"std::", code):
+        return "cpp"
 
     return "python"
 
@@ -41,6 +46,8 @@ def get_parser(lang: str):
         return JSParserModel()
     if lang == "java":
         return JavaParserModel()
+    if lang == "cpp" or lang == "c++":
+        return CppParserModel()
     return PythonParserModel()
 
 

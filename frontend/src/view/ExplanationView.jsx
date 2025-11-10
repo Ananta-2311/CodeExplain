@@ -290,6 +290,7 @@ export default function ExplanationView({ initialCode = '', autoRun = false, onA
               <option value="python">🐍 Python</option>
               <option value="javascript">📜 JavaScript</option>
               <option value="java">☕ Java</option>
+              <option value="cpp">⚙️ C++</option>
             </select>
           </div>
         </div>
