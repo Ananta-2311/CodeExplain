@@ -1,4 +1,4 @@
-#!/Users/anantaaryal/Documents/GitHub/CodeExplain/backend/.venv/bin/python
+#!/Users/anantaaryal/Documents/GitHub/CodeExplain/backend/.venv/bin/python3.11
 import sys
 from httpx import main
 if __name__ == '__main__':
