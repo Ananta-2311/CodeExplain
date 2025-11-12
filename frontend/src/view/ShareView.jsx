@@ -71,7 +71,6 @@ export default function ShareView({ token }) {
         borderRadius: '12px',
         border: `1px solid ${theme.border}`,
       }}>
-        <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
         <div style={{ fontSize: '18px', color: theme.text }}>Loading shared session...</div>
       </div>
     )
@@ -86,7 +85,6 @@ export default function ShareView({ token }) {
         borderRadius: '12px',
         border: `1px solid ${theme.border}`,
       }}>
-        <div style={{ fontSize: '48px', marginBottom: '16px' }}>⚠️</div>
         <div style={{ 
           color: theme.error, 
           marginBottom: 24,
@@ -124,7 +122,6 @@ export default function ShareView({ token }) {
         alignItems: 'center',
         gap: '12px',
       }}>
-        <span style={{ fontSize: '24px' }}>📤</span>
         <div>
           <strong style={{ fontSize: '16px', color: theme.text }}>Shared Session</strong>
           <div style={{ fontSize: '14px', color: theme.textSecondary, marginTop: '4px' }}>

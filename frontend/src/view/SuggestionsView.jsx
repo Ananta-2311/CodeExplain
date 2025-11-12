@@ -13,11 +13,11 @@ const PRIORITY_COLORS = {
 };
 
 const CATEGORY_ICONS = {
-  refactoring: '🔧',
-  complexity: '📊',
-  security: '🔒',
-  performance: '⚡',
-  other: '💡',
+  refactoring: '',
+  complexity: '',
+  security: '',
+  performance: '',
+  other: '',
 };
 
 const CATEGORY_LABELS = {
@@ -130,7 +130,6 @@ export default function SuggestionsView({ code, shouldFetch = false }) {
         border: `1px solid ${theme.border}`,
         boxShadow: theme.shadow,
       }}>
-        <div style={{ fontSize: '48px', marginBottom: '16px' }}>⏳</div>
         <div style={{ fontSize: '18px', color: theme.text, marginBottom: '8px' }}>Analyzing code...</div>
         <div style={{ color: theme.textSecondary }}>Generating improvement suggestions</div>
       </div>
@@ -149,7 +148,6 @@ export default function SuggestionsView({ code, shouldFetch = false }) {
         alignItems: 'center',
         gap: '12px',
       }}>
-        <span style={{ fontSize: '20px' }}>⚠️</span>
         <div><strong>Error:</strong> {error}</div>
       </div>
     );
@@ -165,7 +163,6 @@ export default function SuggestionsView({ code, shouldFetch = false }) {
         border: `1px solid ${theme.border}`,
         boxShadow: theme.shadow,
       }}>
-        <div style={{ fontSize: '48px', marginBottom: '16px' }}>✨</div>
         <div style={{ color: theme.text, fontSize: '16px', marginBottom: '8px' }}>
           {code ? 'No suggestions available. The code looks good!' : 'Enter code to get improvement suggestions'}
         </div>
@@ -205,9 +202,6 @@ export default function SuggestionsView({ code, shouldFetch = false }) {
         }}>
           <div style={{ flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '20px' }}>
-                {CATEGORY_ICONS[category] || CATEGORY_ICONS.other}
-              </span>
               <span style={{ fontWeight: 600, fontSize: '16px', color: theme.text }}>
                 {suggestion.title}
               </span>
@@ -297,7 +291,7 @@ export default function SuggestionsView({ code, shouldFetch = false }) {
                           e.target.style.borderColor = theme.border;
                         }}
                       >
-                        {copiedId === `current-${index}` ? '✓ Copied' : '📋 Copy'}
+                        {copiedId === `current-${index}` ? 'Copied' : 'Copy'}
                       </button>
                     </div>
                     <div style={{ border: `1px solid ${theme.border}`, borderRadius: '8px', overflow: 'hidden' }}>
@@ -349,7 +343,7 @@ export default function SuggestionsView({ code, shouldFetch = false }) {
                           e.target.style.backgroundColor = settings.theme === 'dark' ? '#1a3d1a' : '#f0f9f0';
                         }}
                       >
-                        {copiedId === `recommended-${index}` ? '✓ Copied' : '📋 Copy'}
+                        {copiedId === `recommended-${index}` ? 'Copied' : 'Copy'}
                       </button>
                     </div>
                     <div style={{ border: `2px solid ${PRIORITY_COLORS.low}`, borderRadius: '8px', overflow: 'hidden' }}>
@@ -394,7 +388,7 @@ export default function SuggestionsView({ code, shouldFetch = false }) {
           fontWeight: 700,
           color: theme.text,
         }}>
-          💡 Improvement Suggestions
+          Improvement Suggestions
         </h3>
         <span style={{ 
           fontSize: '14px', 
@@ -420,7 +414,6 @@ export default function SuggestionsView({ code, shouldFetch = false }) {
                 paddingBottom: '12px',
                 borderBottom: `2px solid ${theme.border}`,
               }}>
-                <span style={{ fontSize: '20px' }}>{CATEGORY_ICONS[category] || CATEGORY_ICONS.other}</span>
                 <h4 style={{ 
                   margin: 0, 
                   fontSize: '18px',

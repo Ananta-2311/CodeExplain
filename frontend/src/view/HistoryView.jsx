@@ -82,7 +82,7 @@ export default function HistoryView({ onRerun }) {
           color: theme.text,
           marginBottom: '8px',
         }}>
-          📖 Session History
+          Session History
         </h2>
         <p style={{ color: theme.textSecondary, fontSize: '16px' }}>
           View and re-run your past code explanations
@@ -95,7 +95,7 @@ export default function HistoryView({ onRerun }) {
           padding: '40px',
           color: theme.textSecondary,
         }}>
-          <div style={{ fontSize: '18px' }}>⏳ Loading sessions...</div>
+          <div style={{ fontSize: '18px' }}>Loading sessions...</div>
         </div>
       )}
 
@@ -174,7 +174,6 @@ export default function HistoryView({ onRerun }) {
                 textAlign: 'center',
                 color: theme.textSecondary,
               }}>
-                <div style={{ fontSize: '48px', marginBottom: '12px' }}>📝</div>
                 <div>No sessions yet.</div>
                 <div style={{ fontSize: '12px', marginTop: '8px' }}>
                   Generate explanations to see them here
@@ -229,7 +228,7 @@ export default function HistoryView({ onRerun }) {
                       e.target.style.transform = 'translateY(0)';
                     }}
                   >
-                    🔄 Re-run Explanation
+                    Re-run Explanation
                   </button>
                 </div>
                 <div style={{ marginBottom: '16px', fontWeight: 600, fontSize: '16px' }}>Overview</div>
@@ -270,7 +269,6 @@ export default function HistoryView({ onRerun }) {
                 padding: '60px 20px',
                 color: theme.textSecondary,
               }}>
-                <div style={{ fontSize: '48px', marginBottom: '12px' }}>👈</div>
                 <div>Select a session to view details</div>
               </div>
             )}

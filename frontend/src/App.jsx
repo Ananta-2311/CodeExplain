@@ -148,7 +148,6 @@ function AppContent() {
             }}
             title="Settings"
           >
-            <span>{settings.theme === 'dark' ? '🌙' : '☀️'}</span>
             Settings
           </button>
         </div>
@@ -167,9 +166,9 @@ function AppContent() {
           gap: '4px',
         }}>
           {[
-            { id: 'explain', label: '📚 Explain Code', desc: 'Get AI explanations' },
-            { id: 'history', label: '📖 History', desc: 'Past sessions' },
-            { id: 'admin', label: '⚙️ Admin', desc: 'Dashboard' },
+            { id: 'explain', label: 'Explain Code', desc: 'Get AI explanations' },
+            { id: 'history', label: 'History', desc: 'Past sessions' },
+            { id: 'admin', label: 'Admin', desc: 'Dashboard' },
           ].map(tab => (
             <button
               key={tab.id}

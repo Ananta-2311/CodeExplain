@@ -119,9 +119,6 @@ export default function ExplanationView({ initialCode = '', autoRun = false, onA
           onClick={() => toggleCard(fullPath)}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
-            <span style={{ fontSize: '20px' }}>
-              {data.type === 'class' ? '📦' : '⚙️'}
-            </span>
             <div>
               <span style={{ fontWeight: 600, fontSize: '16px', color: theme.text }}>
                 {name}
@@ -287,10 +284,10 @@ export default function ExplanationView({ initialCode = '', autoRun = false, onA
                 fontWeight: 500,
               }}
             >
-              <option value="python">🐍 Python</option>
-              <option value="javascript">📜 JavaScript</option>
-              <option value="java">☕ Java</option>
-              <option value="cpp">⚙️ C++</option>
+              <option value="python">Python</option>
+              <option value="javascript">JavaScript</option>
+              <option value="java">Java</option>
+              <option value="cpp">C++</option>
             </select>
           </div>
         </div>
@@ -353,7 +350,7 @@ export default function ExplanationView({ initialCode = '', autoRun = false, onA
             }
           }}
         >
-          {loading ? '⏳ Generating Explanation...' : '🚀 Generate Explanation'}
+          {loading ? 'Generating Explanation...' : 'Generate Explanation'}
         </button>
       </div>
 
@@ -370,7 +367,6 @@ export default function ExplanationView({ initialCode = '', autoRun = false, onA
           alignItems: 'center',
           gap: '12px',
         }}>
-          <span style={{ fontSize: '20px' }}>⚠️</span>
           <div>
             <strong>Error:</strong> {error}
           </div>
@@ -430,7 +426,7 @@ export default function ExplanationView({ initialCode = '', autoRun = false, onA
                 e.target.style.borderColor = theme.border;
               }}
             >
-              📄 Export Markdown
+              Export Markdown
             </button>
             <button
               onClick={async () => {
@@ -470,7 +466,7 @@ export default function ExplanationView({ initialCode = '', autoRun = false, onA
                 e.target.style.borderColor = theme.border;
               }}
             >
-              🔗 Share Session
+              Share Session
             </button>
           </div>
 
@@ -488,7 +484,7 @@ export default function ExplanationView({ initialCode = '', autoRun = false, onA
                 fontWeight: 700,
                 color: theme.text,
               }}>
-                📚 Explanation
+                Explanation
               </h2>
               
               {/* Overview Card */}
@@ -514,7 +510,7 @@ export default function ExplanationView({ initialCode = '', autoRun = false, onA
                     onClick={() => toggleCard('overview')}
                   >
                     <div style={{ fontWeight: 600, fontSize: '18px', color: theme.text }}>
-                      📋 Overview
+                      Overview
                     </div>
                     <span style={{ fontSize: '18px', color: theme.textSecondary }}>
                       {expandedCards.has('overview') ? '▼' : '▶'}
@@ -564,7 +560,7 @@ export default function ExplanationView({ initialCode = '', autoRun = false, onA
                 fontWeight: 700,
                 color: theme.text,
               }}>
-                🔍 Data Flow Visualization
+                Data Flow Visualization
               </h2>
               <CodeVisualization code={code} />
             </div>
@@ -584,7 +580,7 @@ export default function ExplanationView({ initialCode = '', autoRun = false, onA
                 fontWeight: 600,
                 color: theme.text,
               }}>
-                💻 Your Code
+                Your Code
               </h3>
               <div style={{ 
                 border: `1px solid ${theme.border}`, 

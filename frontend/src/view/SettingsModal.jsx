@@ -146,7 +146,7 @@ export default function SettingsModal({ isOpen, onClose }) {
                   transition: 'all 0.2s',
                 }}
               >
-                ☀️ Light
+                Light
               </button>
               <button
                 onClick={() => setLocalSettings({ ...localSettings, theme: 'dark' })}
@@ -163,7 +163,7 @@ export default function SettingsModal({ isOpen, onClose }) {
                   transition: 'all 0.2s',
                 }}
               >
-                🌙 Dark
+                Dark
               </button>
             </div>
           </div>

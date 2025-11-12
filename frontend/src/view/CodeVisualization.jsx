@@ -190,7 +190,6 @@ export default function CodeVisualization({ code, onGraphData }) {
         justifyContent: 'center'
       }}>
         <div>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔍</div>
           <div style={{ fontSize: '18px', color: theme.text, marginBottom: '8px' }}>Generating visualization...</div>
           <div style={{ color: theme.textSecondary }}>Analyzing code structure and dependencies</div>
         </div>
@@ -210,7 +209,6 @@ export default function CodeVisualization({ code, onGraphData }) {
         alignItems: 'center',
         gap: '12px',
       }}>
-        <span style={{ fontSize: '20px' }}>⚠️</span>
         <div><strong>Error:</strong> {error}</div>
       </div>
     );
@@ -231,7 +229,6 @@ export default function CodeVisualization({ code, onGraphData }) {
         justifyContent: 'center'
       }}>
         <div>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>📊</div>
           <div style={{ color: theme.text, fontSize: '16px' }}>
             {code ? 'No graph data available. Paste some code and generate an explanation.' : 'Enter code to visualize its structure'}
           </div>
