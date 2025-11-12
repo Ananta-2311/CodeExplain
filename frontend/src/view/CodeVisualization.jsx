@@ -245,6 +245,46 @@ export default function CodeVisualization({ code, onGraphData }) {
       backgroundColor: theme.surfaceElevated,
       boxShadow: theme.shadow,
     }}>
+      {/* Explanation Section */}
+      <div style={{
+        padding: '20px',
+        backgroundColor: theme.surface,
+        borderBottom: `1px solid ${theme.border}`,
+      }}>
+        <h3 style={{
+          margin: '0 0 12px 0',
+          fontSize: '18px',
+          fontWeight: 600,
+          color: theme.text,
+        }}>
+          What is Data Flow Visualization?
+        </h3>
+        <div style={{
+          fontSize: '14px',
+          lineHeight: '1.6',
+          color: theme.textSecondary,
+        }}>
+          <p style={{ margin: '0 0 12px 0' }}>
+            This visualization shows the structure and relationships in your code as an interactive graph. 
+            Each node represents a code element (functions, classes, variables), and the lines (edges) 
+            show how they connect to each other.
+          </p>
+          <p style={{ margin: '0 0 12px 0' }}>
+            <strong style={{ color: theme.text }}>Nodes:</strong> Click on any node to see its details and 
+            highlight its connections. Different colors represent different types:
+          </p>
+          <ul style={{ margin: '0 0 12px 0', paddingLeft: '20px' }}>
+            <li>Functions and methods (blue/teal)</li>
+            <li>Classes (red)</li>
+            <li>Variables (orange)</li>
+          </ul>
+          <p style={{ margin: 0 }}>
+            <strong style={{ color: theme.text }}>Edges:</strong> The lines show relationships like function 
+            calls, inheritance, or containment. Use the filter dropdown to focus on specific element types.
+          </p>
+        </div>
+      </div>
+
       {/* Controls */}
       <div style={{
         padding: '16px 20px',

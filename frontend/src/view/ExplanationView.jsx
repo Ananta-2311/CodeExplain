@@ -387,6 +387,52 @@ export default function ExplanationView({ initialCode = '', autoRun = false, onA
             <button
               onClick={async () => {
                 try {
+                  const res = await axios.post(`${API_BASE_URL}/export/pdf`, {
+                    code: code,
+                    explanation_data: { ...explanationData, generated_at: new Date().toISOString() },
+                    format: 'pdf',
+                  }, { responseType: 'blob' });
+                  const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+                  const link = document.createElement('a');
+                  link.href = url;
+                  link.setAttribute('download', 'code_explanation.pdf');
+                  document.body.appendChild(link);
+                  link.click();
+                  link.remove();
+                  window.URL.revokeObjectURL(url);
+                } catch (e) {
+                  alert('Failed to export PDF: ' + (e.message || 'Unknown error'));
+                }
+              }}
+              style={{
+                padding: '12px 24px',
+                backgroundColor: theme.primary,
+                border: `1px solid ${theme.primary}`,
+                borderRadius: '8px',
+                color: 'white',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontSize: '14px',
+                fontWeight: 600,
+                transition: 'all 0.2s',
+                boxShadow: theme.shadow,
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = theme.primaryHover;
+                e.target.style.transform = 'translateY(-1px)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = theme.primary;
+                e.target.style.transform = 'translateY(0)';
+              }}
+            >
+              Download PDF
+            </button>
+            <button
+              onClick={async () => {
+                try {
                   const res = await axios.post(`${API_BASE_URL}/export/markdown`, {
                     code: code,
                     explanation_data: { ...explanationData, generated_at: new Date().toISOString() },
@@ -399,6 +445,7 @@ export default function ExplanationView({ initialCode = '', autoRun = false, onA
                   document.body.appendChild(link);
                   link.click();
                   link.remove();
+                  window.URL.revokeObjectURL(url);
                 } catch (e) {
                   alert('Failed to export: ' + (e.message || 'Unknown error'));
                 }

@@ -75,7 +75,6 @@ def get_shared_session(token: str):
                     detail={"error": "not_found", "message": "Shared session not found or expired"}
                 )
             
-            # Check expiration
             if share.expires_at and share.expires_at < datetime.utcnow():
                 raise HTTPException(
                     status_code=410,

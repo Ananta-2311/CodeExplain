@@ -15,7 +15,6 @@ import time
 app = FastAPI(title="CodeMuse API")
 init_db()
 
-# Simple request logging middleware for stats
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     start = time.perf_counter()
@@ -41,7 +40,6 @@ async def log_requests(request: Request, call_next):
                 db.add(log)
                 db.commit()
         except Exception:
-            # Never block response due to logging failure
             pass
 
 app.add_middleware(

@@ -6,7 +6,6 @@ from collections import deque
 from openai import OpenAI
 from dotenv import load_dotenv
 
-# Load environment variables
 load_dotenv()
 
 
@@ -21,10 +20,8 @@ class RateLimiter:
     def acquire(self) -> bool:
         """Check if a call is allowed and record it."""
         now = time.time()
-        # Remove calls outside the time window
         while self.calls and self.calls[0] < now - self.time_window:
             self.calls.popleft()
-        # Check if we're at the limit
         if len(self.calls) >= self.max_calls:
             return False
         self.calls.append(now)
@@ -79,7 +76,6 @@ class AIModel:
                 "details": ast_data,
             }
 
-        # Check rate limiting
         if not self.rate_limiter.acquire():
             wait = self.rate_limiter.wait_time()
             return {
@@ -89,11 +85,8 @@ class AIModel:
             }
 
         try:
-            # Prepare context from AST
             ast_json = json.dumps(ast_data["tree"], indent=2)
             context_parts = self._prepare_context(ast_json, source_code)
-
-            # Generate explanation
             explanation = self._generate_explanation(context_parts, detail_level)
 
             return {"ok": True, "explanation": explanation}
@@ -112,11 +105,9 @@ class AIModel:
         chunks: List[Dict[str, str]] = []
         base_prompt = "Here is the AST structure of Python code:\n\n"
 
-        # Estimate tokens for AST (rough: 4 chars = 1 token)
         ast_tokens = len(ast_json) // 4
         code_tokens = len(source_code) // 4 if source_code else 0
 
-        # If total fits, send together
         total_tokens = (
             len(base_prompt) // 4 + ast_tokens + (len(source_code) if source_code else 0) // 4
         )
@@ -127,9 +118,7 @@ class AIModel:
                 context_text += f"\n\nOriginal source code:\n\n```python\n{source_code}\n```"
             chunks.append({"role": "user", "content": context_text})
         else:
-            # Chunk the AST if needed
             if ast_tokens > self.max_context_tokens:
-                # Split AST JSON by top-level items
                 ast_obj = json.loads(ast_json)
                 children = ast_obj.get("children", [])
                 chunk_size = max(1, len(children) // (
@@ -206,10 +195,8 @@ class AIModel:
             node_type = node.get("type", "unknown")
             node_name = node.get("name", "unnamed")
 
-            # Build context
             context = f"Here is a {node_type} named '{node_name}' from Python code:\n\n{node_json}"
             if source_code:
-                # Try to extract relevant code section if we have line numbers
                 start_line = node.get("start")
                 end_line = node.get("end")
                 if start_line and end_line and source_code:

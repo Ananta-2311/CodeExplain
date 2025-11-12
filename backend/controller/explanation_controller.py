@@ -7,7 +7,6 @@ from model.ai_model import AIModel
 
 router = APIRouter(prefix="/explain", tags=["explain"])
 
-# Initialize models (singleton pattern)
 _ai_model: AIModel | None = None
 
 
@@ -31,9 +30,9 @@ def get_ai_model() -> AIModel:
 
 class ExplainRequest(BaseModel):
     code: str
-    detail_level: str = "summary"  # "summary", "brief", or "detailed"
-    organize_by_structure: bool = True  # If True, organize explanations by class/function
-    language: Optional[str] = None  # optional hint: "python" | "javascript" | "java"
+    detail_level: str = "summary"
+    organize_by_structure: bool = True
+    language: Optional[str] = None
     filename: Optional[str] = None
 
 
@@ -45,7 +44,6 @@ def _extract_explainable_nodes(node: Dict[str, Any]) -> List[Dict[str, Any]]:
     if node_type in ("class", "function", "async_function"):
         nodes.append(node)
     
-    # Recursively process children
     for child in node.get("children", []):
         nodes.extend(_extract_explainable_nodes(child))
     
@@ -68,7 +66,6 @@ def _organize_explanations_by_structure(
         node_type = node.get("type")
         node_name = node.get("name", "")
         
-        # Build path for this node
         if node_type == "module":
             current_path = "module"
         elif parent_path:
@@ -84,7 +81,6 @@ def _organize_explanations_by_structure(
             "end_line": node.get("end"),
         }
         
-        # Add type-specific info
         if node_type == "class":
             node_info["bases"] = node.get("bases", [])
             node_info["decorators"] = node.get("decorators", [])
@@ -93,7 +89,6 @@ def _organize_explanations_by_structure(
             node_info["returns"] = node.get("returns")
             node_info["decorators"] = node.get("decorators", [])
         
-        # Process children
         children_explanations: Dict[str, Any] = {}
         for child in node.get("children", []):
             child_type = child.get("type")
@@ -107,7 +102,6 @@ def _organize_explanations_by_structure(
         
         return node_info
     
-    # Build structured output starting from module
     structure = build_structure(tree)
     result["structure"] = structure.get("children", {}) if structure.get("type") == "module" else structure
     
@@ -121,7 +115,6 @@ def explain(req: ExplainRequest):
     Accepts raw Python code, parses it into AST, and generates explanations
     organized by classes and functions. Handles syntax and API errors gracefully.
     """
-    # Step 1: Parse the code into AST (multi-language)
     try:
         parsed = parse_code(req.code, filename=req.filename, hint=req.language)
     except Exception as e:
@@ -131,10 +124,9 @@ def explain(req: ExplainRequest):
                 "error": "parsing_error",
                 "message": f"Unexpected error during parsing: {str(e)}",
                 "type": type(e).__name__,
-            },
-        )
+                },
+            )
     
-    # Handle syntax errors
     if not parsed.get("ok"):
         error_type = parsed.get("error", "unknown_error")
         if error_type == "syntax_error":
@@ -167,7 +159,6 @@ def explain(req: ExplainRequest):
                 },
             )
     
-    # Step 2: Generate AI explanations
     try:
         ai_model = get_ai_model()
     except HTTPException:
@@ -181,7 +172,6 @@ def explain(req: ExplainRequest):
             },
         )
     
-    # Generate overview explanation for the entire module
     try:
         overview_result = ai_model.explain_code(
             ast_data=parsed,
@@ -223,15 +213,12 @@ def explain(req: ExplainRequest):
             },
         )
     
-    # Step 3: Generate organized explanations by structure
     explanations: Dict[str, str] = {"module": overview}
     
     if req.organize_by_structure:
         try:
-            # Extract all classes and functions
             explainable_nodes = _extract_explainable_nodes(parsed["tree"])
             
-            # First, build a map of all nodes to their paths
             def get_node_paths(node: Dict[str, Any], parent_path: str = "") -> Dict[str, str]:
                 """Build mapping of node names to their full paths."""
                 paths: Dict[str, str] = {}
@@ -255,12 +242,10 @@ def explain(req: ExplainRequest):
             
             node_paths = get_node_paths(parsed["tree"])
             
-            # Generate explanation for each class/function
             for node in explainable_nodes:
                 node_type = node.get("type")
                 node_name = node.get("name", "unnamed")
                 
-                # Use the proper path from our map
                 path = node_paths.get(node_name, node_name)
                 
                 node_result = ai_model.explain_ast_node(
@@ -272,10 +257,8 @@ def explain(req: ExplainRequest):
                 if node_result.get("ok"):
                     explanations[path] = node_result["explanation"]
                 else:
-                    # Don't fail entire request if one node explanation fails
                     explanations[path] = f"[Explanation unavailable: {node_result.get('message', 'Unknown error')}]"
             
-            # Organize explanations by structure
             organized = _organize_explanations_by_structure(
                 parsed["tree"],
                 explanations,
@@ -292,7 +275,6 @@ def explain(req: ExplainRequest):
         except HTTPException:
             raise
         except Exception as e:
-            # Fallback to simple overview if organization fails
             return {
                 "ok": True,
                 "overview": overview,
@@ -301,7 +283,6 @@ def explain(req: ExplainRequest):
                 "warning": f"Could not organize explanations: {str(e)}",
             }
     else:
-        # Return simple overview
         return {
             "ok": True,
             "explanation": overview,

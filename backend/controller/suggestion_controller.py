@@ -8,7 +8,6 @@ import json
 
 router = APIRouter(prefix="/suggestions", tags=["suggestions"])
 
-# Initialize models (singleton pattern)
 _parser = ParserModel()
 _ai_model: AIModel | None = None
 
@@ -33,7 +32,7 @@ def get_ai_model() -> AIModel:
 
 class SuggestionRequest(BaseModel):
     code: str
-    focus_areas: Optional[List[str]] = None  # Optional: ["refactoring", "complexity", "security", "performance"]
+    focus_areas: Optional[List[str]] = None
 
 
 class SuggestionGenerator:
@@ -63,7 +62,6 @@ class SuggestionGenerator:
                 "message": "AST parsing failed",
             }
         
-        # Check rate limiting
         if not self.ai_model.rate_limiter.acquire():
             wait = self.ai_model.rate_limiter.wait_time()
             return {
@@ -73,10 +71,8 @@ class SuggestionGenerator:
             }
         
         try:
-            # Prepare context
             ast_json = json.dumps(ast_data["tree"], indent=2)
             
-            # Build focus areas description
             focus_text = ""
             if focus_areas:
                 focus_text = f"\n\nFocus on these areas: {', '.join(focus_areas)}"
@@ -130,19 +126,16 @@ class SuggestionGenerator:
                 messages=messages,
                 max_tokens=min(self.ai_model.max_tokens_per_request, 3000),
                 temperature=0.4,
-                response_format={"type": "json_object"},  # Request JSON response
+                response_format={"type": "json_object"},
             )
             
             response_text = response.choices[0].message.content.strip()
             
-            # Parse JSON response
             try:
                 suggestions_data = json.loads(response_text)
                 
-                # Validate and structure the response
                 suggestions = suggestions_data.get("suggestions", [])
                 
-                # Categorize suggestions
                 categorized = {
                     "refactoring": [],
                     "complexity": [],
@@ -218,7 +211,6 @@ def get_suggestions(req: SuggestionRequest):
             },
         )
     
-    # Handle parsing errors
     if not parsed.get("ok"):
         error_type = parsed.get("error", "unknown_error")
         if error_type == "syntax_error":

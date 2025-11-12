@@ -9,7 +9,6 @@ from sqlalchemy.orm import declarative_base, Mapped, mapped_column, Session, ses
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./codemuse.db")
 
-# Create engine
 engine = create_engine(
     DATABASE_URL,
     echo=False,

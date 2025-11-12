@@ -53,7 +53,6 @@ def save_settings(req: SettingsRequest):
         }
         
         with get_session() as db:
-            # Check if settings exist
             user_id = req.user_id or "default"
             existing = db.query(UserSettings).filter(UserSettings.id == user_id).first()
             
@@ -94,7 +93,6 @@ def get_settings(user_id: str = "default"):
             settings = db.query(UserSettings).filter(UserSettings.id == user_id).first()
             
             if not settings:
-                # Return defaults
                 return SettingsResponse(
                     user_id=user_id,
                     theme="light",

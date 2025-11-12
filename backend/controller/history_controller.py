@@ -88,3 +88,30 @@ def get_history(history_id: int):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail={"error": "fetch_failed", "message": str(e)})
+
+
+@router.delete("/{history_id}")
+def delete_history(history_id: int):
+    try:
+        with get_session() as db:
+            record = db.query(HistorySession).filter(HistorySession.id == history_id).first()
+            if not record:
+                raise HTTPException(status_code=404, detail={"error": "not_found", "message": "History not found"})
+            db.delete(record)
+            db.commit()
+            return {"ok": True, "message": "History deleted successfully"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail={"error": "delete_failed", "message": str(e)})
+
+
+@router.delete("")
+def delete_all_history():
+    try:
+        with get_session() as db:
+            db.query(HistorySession).delete()
+            db.commit()
+            return {"ok": True, "message": "All history deleted successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail={"error": "delete_failed", "message": str(e)})

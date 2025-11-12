@@ -53,14 +53,10 @@ class CppParserModel:
             if not arg_str:
                 return args
             for a in [x.strip() for x in arg_str.split(',') if x.strip()]:
-                # C++ args like: int x, const string& y, int z = 0
-                # Remove default values
                 if '=' in a:
                     a = a.split('=')[0].strip()
-                # Extract type and name
                 parts = a.split()
                 arg_name = parts[-1] if parts else a
-                # Remove &, * from name
                 arg_name = arg_name.rstrip('&*')
                 args.append({"name": arg_name, "annotation": None, "default": None})
             return args
