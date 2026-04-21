@@ -1,3 +1,6 @@
+/**
+ * Lists saved explanation sessions from the API; inspect, delete, or re-run code.
+ */
 import React, { useEffect, useState } from 'react'
 import { useSettings } from '../context/SettingsContext'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -5,9 +8,13 @@ import { vscDarkPlus, oneLight } from 'react-syntax-highlighter/dist/esm/styles/
 
 const API_BASE_URL = 'http://localhost:8000'
 
+/**
+ * @param {{ onRerun?: (code: string) => void }} props Optional callback when user clicks Re-run.
+ */
 export default function HistoryView({ onRerun }) {
   const { settings } = useSettings()
   
+  /** Layout colors for list/detail panes in light and dark mode. */
   const themeStyles = {
     light: {
       bg: '#ffffff',
@@ -36,6 +43,7 @@ export default function HistoryView({ onRerun }) {
   }
 
   const theme = themeStyles[settings.theme] || themeStyles.light
+  /** Syntax highlighter theme for saved code preview. */
   const codeTheme = settings.theme === 'dark' ? vscDarkPlus : oneLight;
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(false)
@@ -44,6 +52,7 @@ export default function HistoryView({ onRerun }) {
   const [selectedDetail, setSelectedDetail] = useState(null)
 
   useEffect(() => {
+    /** GET /history on mount to populate the sidebar list. */
     const load = async () => {
       setLoading(true)
       setError(null)
@@ -60,6 +69,7 @@ export default function HistoryView({ onRerun }) {
     load()
   }, [])
 
+  /** Load full session payload for the selected history id. */
   const selectItem = async (id) => {
     setSelectedId(id)
     setSelectedDetail(null)
@@ -72,6 +82,7 @@ export default function HistoryView({ onRerun }) {
     }
   }
 
+  /** DELETE one session after confirm; updates list and clears selection if needed. */
   const deleteSession = async (id, e) => {
     e.stopPropagation()
     if (!window.confirm('Are you sure you want to delete this session?')) {
@@ -95,6 +106,7 @@ export default function HistoryView({ onRerun }) {
     }
   }
 
+  /** DELETE /history to wipe all rows after confirm. */
   const deleteAllSessions = async () => {
     if (!window.confirm('Are you sure you want to delete ALL sessions? This cannot be undone.')) {
       return

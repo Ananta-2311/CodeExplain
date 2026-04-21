@@ -1,8 +1,12 @@
+/**
+ * Password-gated dashboard: traffic stats, API keys, and recent request logs (polls every 5s).
+ */
 import React, { useEffect, useMemo, useState } from 'react'
 import { useSettings } from '../context/SettingsContext'
 
 const API_BASE_URL = 'http://localhost:8000'
 
+/** Admin UI: token login, then stats / keys / logs fed from /admin/*. */
 export default function AdminView() {
   const { settings } = useSettings()
   const [token, setToken] = useState(localStorage.getItem('codemuse_admin_token') || '')
@@ -14,6 +18,7 @@ export default function AdminView() {
   const [newKeyValue, setNewKeyValue] = useState('')
   const [error, setError] = useState(null)
 
+  /** Dashboard chrome matching global light/dark preference. */
   const themeStyles = {
     light: {
       bg: '#ffffff',
@@ -43,6 +48,7 @@ export default function AdminView() {
 
   const theme = themeStyles[settings.theme] || themeStyles.light
 
+  /** JSON + `X-Admin-Token` for authenticated admin fetches. */
   const headers = useMemo(() => ({
     'Content-Type': 'application/json',
     'X-Admin-Token': token || ''
@@ -50,12 +56,14 @@ export default function AdminView() {
 
   const authenticated = !!token
 
+  /** Persist admin token to localStorage and activate session. */
   const saveToken = () => {
     localStorage.setItem('codemuse_admin_token', inputToken)
     setToken(inputToken)
     setInputToken('')
   }
 
+  /** Clear token and cached admin panels. */
   const logout = () => {
     localStorage.removeItem('codemuse_admin_token')
     setToken('')
@@ -67,6 +75,7 @@ export default function AdminView() {
   useEffect(() => {
     if (!authenticated) return
 
+    /** Parallel load of stats, logs, and keys; refreshes on interval while logged in. */
     const fetchAll = async () => {
       try {
         const [s, l, k] = await Promise.all([
@@ -87,6 +96,7 @@ export default function AdminView() {
     return () => clearInterval(id)
   }, [authenticated, headers])
 
+  /** POST a new API key row when name and value are filled. */
   const addKey = async () => {
     if (!newKeyName || !newKeyValue) return
     try {
@@ -104,6 +114,7 @@ export default function AdminView() {
     } catch (e) {}
   }
 
+  /** DELETE an API key by id and drop it from local list. */
   const deleteKey = async (id) => {
     try {
       const res = await fetch(`${API_BASE_URL}/admin/keys/${id}`, {

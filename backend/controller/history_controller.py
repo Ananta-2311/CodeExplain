@@ -1,3 +1,5 @@
+"""CRUD API for saved explanation sessions stored in SQLite."""
+
 from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException
@@ -15,18 +17,21 @@ init_db()
 
 
 class HistoryCreateRequest(BaseModel):
+    """Payload to persist a code snippet and its explanation response."""
     code: str
     response: Dict[str, Any]  # Store explanation payload (overview/explanations/ast)
     title: Optional[str] = None
 
 
 class HistoryItem(BaseModel):
+    """Summary row returned when listing history."""
     id: int
     title: Optional[str]
     created_at: datetime
 
 
 class HistoryDetail(BaseModel):
+    """Full history record including stored code and JSON explanation payload."""
     id: int
     title: Optional[str]
     code: str
@@ -36,6 +41,7 @@ class HistoryDetail(BaseModel):
 
 @router.post("", response_model=HistoryDetail)
 def save_history(req: HistoryCreateRequest):
+    """Persist a new history entry and return it with assigned id."""
     try:
         with get_session() as db:
             record = HistorySession(
@@ -59,6 +65,7 @@ def save_history(req: HistoryCreateRequest):
 
 @router.get("", response_model=List[HistoryItem])
 def list_history():
+    """Return history rows newest-first (id, title, created_at only)."""
     try:
         with get_session() as db:
             rows = db.query(HistorySession).order_by(HistorySession.created_at.desc()).all()
@@ -72,6 +79,7 @@ def list_history():
 
 @router.get("/{history_id}", response_model=HistoryDetail)
 def get_history(history_id: int):
+    """Load one history record by primary key."""
     try:
         with get_session() as db:
             record = db.query(HistorySession).filter(HistorySession.id == history_id).first()
@@ -92,6 +100,7 @@ def get_history(history_id: int):
 
 @router.delete("/{history_id}")
 def delete_history(history_id: int):
+    """Delete a single history entry."""
     try:
         with get_session() as db:
             record = db.query(HistorySession).filter(HistorySession.id == history_id).first()
@@ -108,6 +117,7 @@ def delete_history(history_id: int):
 
 @router.delete("")
 def delete_all_history():
+    """Remove every row from the history table."""
     try:
         with get_session() as db:
             db.query(HistorySession).delete()

@@ -1,3 +1,5 @@
+"""Routes that parse code and ask the AI for categorized improvement suggestions."""
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Any, Dict, List, Optional
@@ -31,6 +33,8 @@ def get_ai_model() -> AIModel:
 
 
 class SuggestionRequest(BaseModel):
+    """Client body for ``POST /suggestions`` with optional focus area hints."""
+
     code: str
     focus_areas: Optional[List[str]] = None
 
@@ -39,6 +43,7 @@ class SuggestionGenerator:
     """Generates code improvement suggestions using OpenAI."""
     
     def __init__(self, ai_model: AIModel):
+        """Wrap a configured ``AIModel`` for suggestion prompts."""
         self.ai_model = ai_model
     
     def generate_suggestions(

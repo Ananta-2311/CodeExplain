@@ -1,3 +1,5 @@
+"""Downloadable exports of explanations as Markdown or PDF (ReportLab)."""
+
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import Response
 from pydantic import BaseModel
@@ -17,13 +19,14 @@ router = APIRouter(prefix="/export", tags=["export"])
 
 
 class ExportRequest(BaseModel):
+    """Source code plus structured explanation payload for export builders."""
     code: str
     explanation_data: Dict[str, Any]
     format: str = "markdown"
 
 
 def generate_markdown(code: str, explanation_data: Dict[str, Any]) -> str:
-    """Generate Markdown export of code explanation."""
+    """Build a Markdown document: overview, source, nested structure, and suggestions."""
     md = []
     md.append("# Code Explanation Report\n\n")
     md.append(f"Generated: {explanation_data.get('generated_at', 'N/A')}\n\n")
@@ -42,6 +45,7 @@ def generate_markdown(code: str, explanation_data: Dict[str, Any]) -> str:
         md.append("## Code Structure\n\n")
         
         def add_explanation(name: str, data: Dict[str, Any], level: int = 0):
+            """Append one node and its children to the Markdown buffer."""
             indent = "  " * level
             node_type = data.get("type", "unknown")
             icon = "📦" if node_type == "class" else "⚙️"
@@ -182,6 +186,7 @@ def generate_pdf(code: str, explanation_data: Dict[str, Any]) -> bytes:
         story.append(Paragraph("Code Structure", heading1_style))
         
         def add_explanation_pdf(name: str, data: Dict[str, Any], level: int = 0):
+            """Emit ReportLab paragraphs for one structural node and recurse."""
             node_type = data.get("type", "unknown")
             indent = "&nbsp;" * (level * 4)
             

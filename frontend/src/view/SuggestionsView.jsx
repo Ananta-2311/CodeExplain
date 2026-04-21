@@ -1,3 +1,6 @@
+/**
+ * Fetches `/suggestions` when enabled and lists AI refactor/security/perf ideas with copy actions.
+ */
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -6,12 +9,14 @@ import { useSettings } from '../context/SettingsContext';
 
 const API_BASE_URL = 'http://localhost:8000';
 
+/** Badge colors keyed by suggestion priority. */
 const PRIORITY_COLORS = {
   high: '#f85149',
   medium: '#d29922',
   low: '#3fb950',
 };
 
+/** Reserved for future icons per category (currently unused). */
 const CATEGORY_ICONS = {
   refactoring: '',
   complexity: '',
@@ -20,6 +25,7 @@ const CATEGORY_ICONS = {
   other: '',
 };
 
+/** Human-readable section titles for categorized API responses. */
 const CATEGORY_LABELS = {
   refactoring: 'Refactoring',
   complexity: 'Complexity',
@@ -28,6 +34,9 @@ const CATEGORY_LABELS = {
   other: 'Other',
 };
 
+/**
+ * @param {{ code: string, shouldFetch?: boolean }} props When `shouldFetch` is false, clears suggestions.
+ */
 export default function SuggestionsView({ code, shouldFetch = false }) {
   const { settings } = useSettings();
   const [suggestions, setSuggestions] = useState(null);
@@ -36,6 +45,7 @@ export default function SuggestionsView({ code, shouldFetch = false }) {
   const [expandedSuggestion, setExpandedSuggestion] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
 
+  /** Card and panel colors for the suggestions section. */
   const themeStyles = {
     light: {
       bg: '#ffffff',
@@ -73,6 +83,7 @@ export default function SuggestionsView({ code, shouldFetch = false }) {
       return;
     }
 
+    /** POST current `code` to suggestions API and store categorized payload. */
     const fetchSuggestions = async () => {
       setLoading(true);
       setError(null);
@@ -106,6 +117,7 @@ export default function SuggestionsView({ code, shouldFetch = false }) {
     fetchSuggestions();
   }, [code, shouldFetch]);
 
+  /** Copy snippet text and briefly show "Copied" for the matching button id. */
   const copyToClipboard = async (text, suggestionId) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -116,6 +128,7 @@ export default function SuggestionsView({ code, shouldFetch = false }) {
     }
   };
 
+  /** Expand at most one suggestion card at a time (by index in flat list). */
   const toggleSuggestion = (index) => {
     setExpandedSuggestion(expandedSuggestion === index ? null : index);
   };
@@ -170,6 +183,7 @@ export default function SuggestionsView({ code, shouldFetch = false }) {
     );
   }
 
+  /** Single collapsible suggestion with priority badge and optional code blocks. */
   const renderSuggestionCard = (suggestion, index) => {
     const isExpanded = expandedSuggestion === index;
     const priority = suggestion.priority || 'medium';

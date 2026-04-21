@@ -1,3 +1,6 @@
+/**
+ * Fetches `/visualize` graph JSON and renders an interactive force-directed 2D graph with filters.
+ */
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
 import * as d3 from 'd3';
@@ -5,9 +8,15 @@ import { useSettings } from '../context/SettingsContext';
 
 const API_BASE_URL = 'http://localhost:8000';
 
+/**
+ * @param {object} props
+ * @param {string} props.code Source text sent to the visualization API (same as explain tab).
+ * @param {(graph: object) => void} [props.onGraphData] Optional notifier when graph loads.
+ */
 export default function CodeVisualization({ code, onGraphData }) {
   const { settings } = useSettings();
   
+  /** Color tokens for loading/error/chrome around the graph canvas. */
   const themeStyles = {
     light: {
       bg: '#ffffff',
@@ -48,6 +57,7 @@ export default function CodeVisualization({ code, onGraphData }) {
       return;
     }
 
+    /** POST body `{ code }` to backend visualization endpoint. */
     const fetchGraphData = async () => {
       setLoading(true);
       setError(null);
@@ -81,7 +91,7 @@ export default function CodeVisualization({ code, onGraphData }) {
     fetchGraphData();
   }, [code, onGraphData]);
 
-  // Filter nodes and links based on selected type
+  /** Subset of nodes/links when filter is not "all". */
   const filteredData = React.useMemo(() => {
     if (!graphData) return null;
 
@@ -105,7 +115,7 @@ export default function CodeVisualization({ code, onGraphData }) {
     };
   }, [graphData, filterType]);
 
-  // Handle node click
+  /** Focus one node and highlight its incident edges and neighbors. */
   const handleNodeClick = useCallback((node) => {
     setSelectedNode(node);
     
@@ -128,14 +138,14 @@ export default function CodeVisualization({ code, onGraphData }) {
     setHighlightLinks(linkKeys);
   }, [filteredData]);
 
-  // Handle background click (deselect)
+  /** Clear selection and graph highlight overlays. */
   const handleBackgroundClick = useCallback(() => {
     setSelectedNode(null);
     setHighlightNodes(new Set());
     setHighlightLinks(new Set());
   }, []);
 
-  // Color function based on node type
+  /** Node fill: type palette, dimmed when highlighting unrelated nodes. */
   const getNodeColor = useCallback((node) => {
     if (highlightNodes.size > 0 && !highlightNodes.has(node.id)) {
       return '#ccc';
@@ -153,7 +163,7 @@ export default function CodeVisualization({ code, onGraphData }) {
     }
   }, [highlightNodes]);
 
-  // Link color function
+  /** Edge stroke color by relationship type; fades non-highlighted links. */
   const getLinkColor = useCallback((link) => {
     const sourceId = typeof link.source === 'object' ? link.source.id : link.source;
     const targetId = typeof link.target === 'object' ? link.target.id : link.target;

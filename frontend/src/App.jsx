@@ -1,3 +1,6 @@
+/**
+ * Root layout: header, tab navigation, themed shell, and lazy-loaded feature views.
+ */
 import React, { useState, useEffect } from 'react'
 import { useSettings } from './context/SettingsContext'
 import ExplanationView from './view/ExplanationView.jsx'
@@ -6,6 +9,9 @@ import SettingsModal from './view/SettingsModal.jsx'
 import AdminView from './view/AdminView.jsx'
 import ShareView from './view/ShareView.jsx'
 
+/**
+ * Holds tab state, share-route detection, and passes re-run code into Explain.
+ */
 function AppContent() {
   const { settings } = useSettings()
   const [activeTab, setActiveTab] = useState('explain')
@@ -24,12 +30,14 @@ function AppContent() {
     }
   }, [])
 
+  /** Switches to Explain tab and triggers a one-shot auto explanation for `code`. */
   const handleRerun = (code) => {
     setSharedCode(code)
     setAutoRun(true)
     setActiveTab('explain')
   }
 
+  /** Inline palette tokens keyed by theme name (mirrors view components). */
   const themeStyles = {
     light: {
       bg: '#ffffff',
@@ -234,6 +242,7 @@ function AppContent() {
   )
 }
 
+/** Default export used by main.jsx; thin wrapper around AppContent. */
 export default function App() {
   return <AppContent />
 }

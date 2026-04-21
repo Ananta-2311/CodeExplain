@@ -1,3 +1,5 @@
+"""Routes for parsing multi-language code and returning AI explanations (module + per-node)."""
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Any, Dict, List, Optional
@@ -29,11 +31,33 @@ def get_ai_model() -> AIModel:
 
 
 class ExplainRequest(BaseModel):
+    """Client body for ``POST /explain``: raw code plus explanation options."""
+
     code: str
     detail_level: str = "summary"
     organize_by_structure: bool = True
     language: Optional[str] = None
     filename: Optional[str] = None
+
+
+def _syntax_hint(message: str) -> str:
+    """Return a specific hint for common syntax errors."""
+    msg = (message or "").lower()
+
+    if "expected an indented block after function definition" in msg:
+        return (
+            "Your function definition has no body. Add an indented block under it, "
+            "for example:\n\ndef my_func():\n    pass"
+        )
+    if "expected an indented block after class definition" in msg:
+        return (
+            "Your class definition has no body. Add an indented block under it, "
+            "for example:\n\nclass MyClass:\n    pass"
+        )
+    if "unexpected eof while parsing" in msg:
+        return "Your code looks incomplete (missing closing bracket/quote or block)."
+
+    return "Please check your code for syntax errors."
 
 
 def _extract_explainable_nodes(node: Dict[str, Any]) -> List[Dict[str, Any]]:
@@ -130,15 +154,16 @@ def explain(req: ExplainRequest):
     if not parsed.get("ok"):
         error_type = parsed.get("error", "unknown_error")
         if error_type == "syntax_error":
+            syntax_message = parsed.get("message", "Invalid Python syntax")
             raise HTTPException(
                 status_code=400,
                 detail={
                     "error": "syntax_error",
-                    "message": parsed.get("message", "Invalid Python syntax"),
+                    "message": syntax_message,
                     "line": parsed.get("lineno"),
                     "offset": parsed.get("offset"),
                     "text": parsed.get("text"),
-                    "hint": "Please check your Python code for syntax errors.",
+                    "hint": _syntax_hint(syntax_message),
                 },
             )
         elif error_type == "invalid_input":

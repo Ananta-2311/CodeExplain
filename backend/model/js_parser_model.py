@@ -1,3 +1,5 @@
+"""Regex-based JavaScript/TypeScript-ish structure extraction for demos."""
+
 import re
 from typing import Any, Dict, List, Optional
 
@@ -15,6 +17,7 @@ class JSParserModel:
     ASSIGNED_FUNC_RE = re.compile(r"^\s*(?:const|let|var)\s+(?P<name>[A-Za-z_\$][\w\$]*)\s*=\s*(?:async\s+)?(?:\([^)]*\)\s*=>|function\s*\((?P<args2>[^)]*)\))", re.MULTILINE)
 
     def parse(self, source_code: Optional[str]) -> Dict[str, Any]:
+        """Return top-level classes and functions as a module tree, or an error dict."""
         if not isinstance(source_code, str):
             return {"ok": False, "error": "invalid_input", "message": "source_code must be a string"}
 
@@ -35,6 +38,7 @@ class JSParserModel:
             })
 
         def parse_args(arg_str: str) -> List[Dict[str, Any]]:
+            """Split a JS parameter list on commas into placeholder arg records."""
             args = []
             if not arg_str:
                 return args

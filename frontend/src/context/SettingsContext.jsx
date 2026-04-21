@@ -1,7 +1,11 @@
+/**
+ * Global UI settings (theme, font size, language) with localStorage persistence.
+ */
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const SettingsContext = createContext();
 
+/** Baseline merged with any saved values from localStorage. */
 const DEFAULT_SETTINGS = {
   theme: 'light',
   fontSize: 14,
@@ -9,12 +13,16 @@ const DEFAULT_SETTINGS = {
   editorTheme: 'default',
 };
 
+/**
+ * Provides `settings`, `updateSettings`, and `loading` to descendants.
+ */
 export function SettingsProvider({ children }) {
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(true);
 
   // Load settings from localStorage on mount
   useEffect(() => {
+    /** Hydrate state from `codemuse_settings` or fall back to defaults. */
     const loadSettings = () => {
       try {
         const saved = localStorage.getItem('codemuse_settings');
@@ -39,6 +47,7 @@ export function SettingsProvider({ children }) {
     }
   }, [settings, loading]);
 
+  /** Shallow-merge partial updates into current settings (also persists when not loading). */
   const updateSettings = (newSettings) => {
     setSettings((prev) => ({ ...prev, ...newSettings }));
   };
@@ -56,6 +65,7 @@ export function SettingsProvider({ children }) {
   );
 }
 
+/** Hook to read/update settings; must run under SettingsProvider. */
 export function useSettings() {
   const context = useContext(SettingsContext);
   if (!context) {

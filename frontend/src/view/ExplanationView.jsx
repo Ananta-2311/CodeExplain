@@ -1,3 +1,6 @@
+/**
+ * Primary screen: code editor, explain API, structured cards, export/share, viz, and suggestions.
+ */
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -8,6 +11,12 @@ import SuggestionsView from './SuggestionsView.jsx';
 
 const API_BASE_URL = 'http://localhost:8000';
 
+/**
+ * @param {object} props
+ * @param {string} [props.initialCode] Seed the editor (e.g. from History or Share).
+ * @param {boolean} [props.autoRun] When true, triggers one explanation run then clears via callback.
+ * @param {() => void} [props.onAutoRunConsumed] Called after auto-run so parent can reset flag.
+ */
 export default function ExplanationView({ initialCode = '', autoRun = false, onAutoRunConsumed }) {
   const { settings, updateSettings } = useSettings();
   const [code, setCode] = useState(initialCode || '');
@@ -16,12 +25,14 @@ export default function ExplanationView({ initialCode = '', autoRun = false, onA
   const [explanationData, setExplanationData] = useState(null);
   const [expandedCards, setExpandedCards] = useState(new Set());
 
+  /** Keep editor text in sync when parent passes new `initialCode` (e.g. re-run from history). */
   useEffect(() => {
     if (typeof initialCode === 'string') {
       setCode(initialCode)
     }
   }, [initialCode])
 
+  /** One-shot: when `autoRun` flips on, generate once then notify parent via `onAutoRunConsumed`. */
   useEffect(() => {
     if (autoRun && (initialCode || code)) {
       handleGenerateExplanation()
@@ -30,6 +41,7 @@ export default function ExplanationView({ initialCode = '', autoRun = false, onA
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoRun])
 
+  /** Expand/collapse a structure card by dotted path key. */
   const toggleCard = (path) => {
     const newExpanded = new Set(expandedCards);
     if (newExpanded.has(path)) {
@@ -40,6 +52,7 @@ export default function ExplanationView({ initialCode = '', autoRun = false, onA
     setExpandedCards(newExpanded);
   };
 
+  /** POST /explain, persist to /history on success, and surface API validation errors. */
   const handleGenerateExplanation = async () => {
     if (!code.trim()) {
       setError('Please enter some code to explain.');
@@ -79,17 +92,21 @@ export default function ExplanationView({ initialCode = '', autoRun = false, onA
       if (err.response) {
         const errorDetail = err.response.data?.detail || {};
         const errorMessage = errorDetail.message || errorDetail.error || 'An error occurred';
-        setError(`Error: ${errorMessage}`);
+        const parts = [errorMessage];
+        if (errorDetail.line) parts.push(`Line: ${errorDetail.line}`);
+        if (errorDetail.hint) parts.push(`Hint: ${errorDetail.hint}`);
+        setError(parts.join('\n'));
       } else if (err.request) {
         setError('Unable to connect to the backend server. Make sure the server is running on port 8000.');
       } else {
-        setError(`Error: ${err.message}`);
+        setError(err.message);
       }
     } finally {
       setLoading(false);
     }
   };
 
+  /** Recursive accordion for one AST node and its `children` map. */
   const renderExplanationCard = (name, data, path = '') => {
     const fullPath = path ? `${path}.${name}` : name;
     const isExpanded = expandedCards.has(fullPath);
@@ -180,6 +197,7 @@ export default function ExplanationView({ initialCode = '', autoRun = false, onA
     );
   };
 
+  /** Local palette (must stay above JSX that references `theme`). */
   const themeStyles = {
     light: {
       bg: '#ffffff',
@@ -216,6 +234,7 @@ export default function ExplanationView({ initialCode = '', autoRun = false, onA
   };
 
   const theme = themeStyles[settings.theme] || themeStyles.light;
+  /** Prism style bundle matching app light/dark mode. */
   const codeTheme = settings.theme === 'dark' ? vscDarkPlus : oneLight;
 
   return (

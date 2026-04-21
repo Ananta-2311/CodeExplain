@@ -1,3 +1,6 @@
+/**
+ * Bootstraps the React app: mounts under #root and wraps the tree in SettingsProvider.
+ */
 import React from 'react'
 import { createRoot } from 'react-dom/client'
 import { SettingsProvider } from './context/SettingsContext'

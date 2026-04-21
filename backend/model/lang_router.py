@@ -1,3 +1,5 @@
+"""Detect source language and delegate parsing to the appropriate parser model."""
+
 from __future__ import annotations
 
 import re
@@ -10,6 +12,7 @@ from model.cpp_parser_model import CppParserModel
 
 
 def detect_language(source_code: str, filename: Optional[str] = None, hint: Optional[str] = None) -> str:
+    """Infer language from explicit hint, file extension, or lightweight token heuristics."""
     if hint:
         h = hint.strip().lower()
         if h in ("py", "python"): return "python"
@@ -39,6 +42,7 @@ def detect_language(source_code: str, filename: Optional[str] = None, hint: Opti
 
 
 def get_parser(lang: str):
+    """Return a parser instance for the normalized language string."""
     lang = (lang or "python").lower()
     if lang == "python":
         return PythonParserModel()
@@ -52,6 +56,7 @@ def get_parser(lang: str):
 
 
 def parse_code(source_code: str, filename: Optional[str] = None, hint: Optional[str] = None) -> Dict[str, Any]:
+    """Parse ``source_code`` with the right backend parser and tag ``tree['language']`` on success."""
     lang = detect_language(source_code, filename, hint)
     parser = get_parser(lang)
     result = parser.parse(source_code)

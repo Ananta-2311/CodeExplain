@@ -1,3 +1,5 @@
+"""Regex-based Java structure extraction (classes, interfaces, methods)."""
+
 import re
 from typing import Any, Dict, List, Optional
 
@@ -12,6 +14,7 @@ class JavaParserModel:
     METHOD_RE = re.compile(r"^\s*(public|private|protected)?\s*(static\s+)?[\w\<\>\[\]]+\s+(?P<name>[A-Za-z_][\w]*)\s*\((?P<args>[^)]*)\)\s*\{", re.MULTILINE)
 
     def parse(self, source_code: Optional[str]) -> Dict[str, Any]:
+        """Return a flat list of declarations under a synthetic module node, or an error dict."""
         if not isinstance(source_code, str):
             return {"ok": False, "error": "invalid_input", "message": "source_code must be a string"}
 
@@ -44,6 +47,7 @@ class JavaParserModel:
             })
 
         def parse_args(arg_str: str) -> List[Dict[str, Any]]:
+            """Split Java parameters on commas and take the last token as the arg name."""
             args = []
             if not arg_str:
                 return args

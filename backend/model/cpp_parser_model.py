@@ -1,3 +1,5 @@
+"""Regex-based C++ structure extraction (classes, structs, functions, namespaces)."""
+
 import re
 from typing import Any, Dict, List, Optional
 
@@ -15,6 +17,7 @@ class CppParserModel:
     NAMESPACE_RE = re.compile(r"^\s*namespace\s+(?P<name>[A-Za-z_][\w]*)", re.MULTILINE)
 
     def parse(self, source_code: Optional[str]) -> Dict[str, Any]:
+        """Return a module-shaped tree of coarse-grained declarations, or an error dict."""
         if not isinstance(source_code, str):
             return {"ok": False, "error": "invalid_input", "message": "source_code must be a string"}
 
@@ -49,6 +52,7 @@ class CppParserModel:
             })
 
         def parse_args(arg_str: str) -> List[Dict[str, Any]]:
+            """Split a C++ parameter list into simple ``{name, ...}`` entries."""
             args = []
             if not arg_str:
                 return args

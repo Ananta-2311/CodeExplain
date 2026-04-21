@@ -1,14 +1,21 @@
+/**
+ * Modal overlay to edit theme, font size, and default language; syncs to API when possible.
+ */
 import React, { useState, useEffect } from 'react';
 import { useSettings } from '../context/SettingsContext';
 import axios from 'axios';
 
 const API_BASE_URL = 'http://localhost:8000';
 
+/**
+ * @param {{ isOpen: boolean, onClose: () => void }} props
+ */
 export default function SettingsModal({ isOpen, onClose }) {
   const { settings, updateSettings } = useSettings();
   const [localSettings, setLocalSettings] = useState(settings);
   const [saving, setSaving] = useState(false);
 
+  /** When the modal opens, reset the draft form from latest context settings. */
   useEffect(() => {
     if (isOpen) {
       setLocalSettings(settings);
@@ -17,6 +24,7 @@ export default function SettingsModal({ isOpen, onClose }) {
 
   if (!isOpen) return null;
 
+  /** Modal-specific colors (overlay + form surface). */
   const themeStyles = {
     light: {
       bg: '#ffffff',
@@ -40,6 +48,7 @@ export default function SettingsModal({ isOpen, onClose }) {
 
   const currentTheme = themeStyles[localSettings.theme] || themeStyles.light;
 
+  /** Push local edits to context + POST /settings, then close (best-effort on API errors). */
   const handleSave = async () => {
     setSaving(true);
     try {

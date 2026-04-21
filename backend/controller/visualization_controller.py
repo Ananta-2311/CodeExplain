@@ -1,8 +1,11 @@
+"""Routes and AST analysis for building call/inheritance graphs for the visualization UI."""
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Any, Dict, List, Set, Optional, Tuple
 from model.parser_model import ParserModel
 import ast
+import re
 
 
 router = APIRouter(prefix="/visualize", tags=["visualize"])
@@ -12,6 +15,8 @@ _parser = ParserModel()
 
 
 class VisualizeRequest(BaseModel):
+    """Client body for ``POST /visualize``: Python source to graph."""
+
     code: str
 
 
@@ -19,6 +24,7 @@ class ASTAnalyzer:
     """Analyzes AST to extract data flow relationships, function calls, and dependencies."""
     
     def __init__(self, source_code: str):
+        """Prepare empty maps/lists that ``analyze`` will populate from ``source_code``."""
         self.source_code = source_code
         self.function_definitions: Dict[str, Dict[str, Any]] = {}  # name -> info
         self.class_definitions: Dict[str, Dict[str, Any]] = {}  # name -> info
@@ -32,7 +38,7 @@ class ASTAnalyzer:
     def analyze(self) -> Dict[str, Any]:
         """Main analysis entry point."""
         try:
-            tree = ast.parse(self.source_code)
+            tree = self._parse_with_repair(self.source_code)
             self._visit_module(tree)
             
             return {
@@ -47,6 +53,7 @@ class ASTAnalyzer:
                     "error": "syntax_error",
                     "message": str(exc),
                     "line": exc.lineno,
+                    "hint": self._syntax_hint(str(exc)),
                 }
             )
         except Exception as exc:
@@ -57,6 +64,55 @@ class ASTAnalyzer:
                     "message": str(exc),
                 }
             )
+
+    def _parse_with_repair(self, source_code: str) -> ast.Module:
+        """Parse Python source, with a small repair for empty def/class bodies."""
+        try:
+            return ast.parse(source_code)
+        except SyntaxError as exc:
+            repaired = self._try_repair_missing_block(source_code, exc)
+            if repaired is not None:
+                return ast.parse(repaired)
+            raise
+
+    def _try_repair_missing_block(self, source_code: str, exc: SyntaxError) -> Optional[str]:
+        """If the syntax error is an empty def/class body, return source with ``pass`` inserted."""
+        message = str(exc).lower()
+        if "expected an indented block after function definition" not in message and \
+           "expected an indented block after class definition" not in message:
+            return None
+
+        lineno = getattr(exc, "lineno", None)
+        if not isinstance(lineno, int) or lineno <= 0:
+            return None
+
+        lines = source_code.splitlines()
+        candidate_idxs = [lineno - 1, lineno - 2]
+        idx = None
+        header = ""
+        for candidate in candidate_idxs:
+            if 0 <= candidate < len(lines):
+                maybe_header = lines[candidate]
+                if re.match(r"^\s*(def|class)\b.*:\s*(#.*)?$", maybe_header):
+                    idx = candidate
+                    header = maybe_header
+                    break
+        if idx is None:
+            return None
+
+        indent = len(header) - len(header.lstrip(" "))
+        pass_line = (" " * (indent + 4)) + "pass"
+        repaired_lines = lines[: idx + 1] + [pass_line] + lines[idx + 1 :]
+        return "\n".join(repaired_lines) + ("\n" if source_code.endswith("\n") else "")
+
+    def _syntax_hint(self, message: str) -> str:
+        """Return a short user-facing hint for common Python syntax errors."""
+        msg = (message or "").lower()
+        if "expected an indented block after function definition" in msg:
+            return "Add an indented body under the function, e.g. `pass`."
+        if "expected an indented block after class definition" in msg:
+            return "Add an indented body under the class, e.g. `pass`."
+        return "Please check your code for syntax errors."
     
     def _visit_module(self, node: ast.Module):
         """Visit module and analyze all top-level definitions and statements."""

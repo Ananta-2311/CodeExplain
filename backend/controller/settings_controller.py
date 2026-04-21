@@ -1,3 +1,5 @@
+"""Persist and load per-user editor/theme settings in the database."""
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Any, Dict, Optional
@@ -11,6 +13,8 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 # Settings model (using same base)
 class UserSettings(Base):
+    """Single row of JSON-serialized UI preferences for a user (or ``default``)."""
+
     __tablename__ = "user_settings"
 
     id: Mapped[str] = mapped_column(String(255), primary_key=True)  # user_id or "default"
@@ -25,6 +29,7 @@ init_db()
 
 
 class SettingsRequest(BaseModel):
+    """Incoming settings fields from the client."""
     user_id: Optional[str] = "default"
     theme: Optional[str] = "light"  # "light" or "dark"
     fontSize: Optional[int] = 14
@@ -33,6 +38,7 @@ class SettingsRequest(BaseModel):
 
 
 class SettingsResponse(BaseModel):
+    """Normalized settings returned after save or get."""
     user_id: str
     theme: str
     fontSize: int

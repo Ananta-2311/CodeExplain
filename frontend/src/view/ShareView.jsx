@@ -1,3 +1,6 @@
+/**
+ * Resolves `/share/:token` payloads and embeds ExplanationView with loaded code + auto-run.
+ */
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import { useSettings } from '../context/SettingsContext'
@@ -5,6 +8,9 @@ import ExplanationView from './ExplanationView.jsx'
 
 const API_BASE_URL = 'http://localhost:8000'
 
+/**
+ * @param {{ token: string }} props Share token from the URL segment.
+ */
 export default function ShareView({ token }) {
   const { settings } = useSettings()
   const [loading, setLoading] = useState(true)
@@ -12,6 +18,7 @@ export default function ShareView({ token }) {
   const [code, setCode] = useState('')
   const [autoRun, setAutoRun] = useState(false)
 
+  /** Minimal palette for loading/error states and banner chrome. */
   const themeStyles = {
     light: {
       bg: '#ffffff',
@@ -36,6 +43,7 @@ export default function ShareView({ token }) {
   const theme = themeStyles[settings.theme] || themeStyles.light
 
   useEffect(() => {
+    /** GET /share/:token; maps 404/410 to user-facing errors. */
     const load = async () => {
       try {
         const res = await axios.get(`${API_BASE_URL}/share/${token}`)

@@ -1,3 +1,5 @@
+"""OpenAI client wrapper, rate limiting, and prompt helpers for explanations."""
+
 import os
 import time
 import json
@@ -13,6 +15,7 @@ class RateLimiter:
     """Simple token bucket rate limiter for API calls."""
 
     def __init__(self, max_calls: int = 60, time_window: float = 60.0):
+        """Configure max calls allowed per rolling ``time_window`` (seconds)."""
         self.max_calls = max_calls
         self.time_window = time_window
         self.calls = deque()
@@ -39,6 +42,7 @@ class AIModel:
     """OpenAI integration for generating code explanations from AST data."""
 
     def __init__(self):
+        """Load API credentials from the environment and construct an ``OpenAI`` client."""
         api_key = os.getenv("OPENAI_API_KEY")
         if not api_key:
             raise ValueError(

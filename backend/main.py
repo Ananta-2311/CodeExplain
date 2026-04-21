@@ -1,3 +1,5 @@
+"""FastAPI entrypoint for the CodeMuse API: routers, CORS, DB init, and request logging."""
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from controller.explanation_controller import router as explanation_router
@@ -17,6 +19,7 @@ init_db()
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
+    """Record each HTTP request path, status, latency, and errors to the database."""
     start = time.perf_counter()
     response = None
     error_msg = None
@@ -53,6 +56,7 @@ app.add_middleware(
 
 @app.get("/health")
 def health_check():
+    """Liveness probe for load balancers and monitoring."""
     return {"status": "ok"}
 
 

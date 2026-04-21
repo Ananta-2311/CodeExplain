@@ -1,3 +1,5 @@
+"""Create and resolve time-limited share links for a code + explanation snapshot."""
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Any, Dict, Optional
@@ -11,12 +13,14 @@ router = APIRouter(prefix="/share", tags=["share"])
 
 
 class ShareRequest(BaseModel):
+    """Payload to store a shareable copy with optional expiry."""
     code: str
     response: Dict[str, Any]
     expires_days: Optional[int] = 30  # Default 30 days
 
 
 class ShareResponse(BaseModel):
+    """Token and frontend URL returned after creating a share."""
     token: str
     url: str
     expires_at: Optional[datetime]

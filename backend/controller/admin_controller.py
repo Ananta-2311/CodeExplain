@@ -1,3 +1,5 @@
+"""Admin-only endpoints: API stats, request logs, and API key management."""
+
 from __future__ import annotations
 
 import os
@@ -16,11 +18,13 @@ ADMIN_TOKEN = os.getenv("ADMIN_TOKEN", "changeme")
 
 
 def require_admin(x_admin_token: Optional[str]):
+    """Raise 401 unless ``X-Admin-Token`` matches ``ADMIN_TOKEN``."""
     if not x_admin_token or x_admin_token != ADMIN_TOKEN:
         raise HTTPException(status_code=401, detail={"error": "unauthorized", "message": "Invalid admin token"})
 
 
 class StatsResponse(BaseModel):
+    """Aggregated request volume and latency metrics from ``api_logs``."""
     total_requests: int
     total_errors: int
     avg_latency_ms: float
@@ -31,6 +35,7 @@ class StatsResponse(BaseModel):
 
 @router.get("/stats", response_model=StatsResponse)
 def get_stats(x_admin_token: Optional[str] = Header(None)):
+    """Return totals, averages, approximate p95 latency, and last-hour stats."""
     require_admin(x_admin_token)
     with get_session() as db:
         total_requests = db.query(func.count(ApiLog.id)).scalar() or 0
@@ -61,6 +66,7 @@ def get_stats(x_admin_token: Optional[str] = Header(None)):
 
 
 class LogItem(BaseModel):
+    """One row from the request log table."""
     id: int
     timestamp: datetime
     method: str
@@ -72,6 +78,7 @@ class LogItem(BaseModel):
 
 @router.get("/logs", response_model=List[LogItem])
 def get_logs(limit: int = 200, x_admin_token: Optional[str] = Header(None)):
+    """Return recent API log rows (newest first), capped for safety."""
     require_admin(x_admin_token)
     with get_session() as db:
         rows = (
@@ -95,12 +102,14 @@ def get_logs(limit: int = 200, x_admin_token: Optional[str] = Header(None)):
 
 
 class ApiKeyIn(BaseModel):
+    """Body for registering a new API key."""
     name: str
     key: str
     active: Optional[bool] = True
 
 
 class ApiKeyOut(BaseModel):
+    """API key metadata returned to admins (value masked)."""
     id: int
     name: str
     active: bool
@@ -111,6 +120,7 @@ class ApiKeyOut(BaseModel):
 
 @router.get("/keys", response_model=List[ApiKeyOut])
 def list_keys(x_admin_token: Optional[str] = Header(None)):
+    """List stored API keys with masked secret material."""
     require_admin(x_admin_token)
     with get_session() as db:
         keys = db.query(ApiKey).order_by(desc(ApiKey.created_at)).all()
@@ -130,6 +140,7 @@ def list_keys(x_admin_token: Optional[str] = Header(None)):
 
 @router.post("/keys", response_model=ApiKeyOut)
 def add_key(payload: ApiKeyIn, x_admin_token: Optional[str] = Header(None)):
+    """Insert a new API key row."""
     require_admin(x_admin_token)
     with get_session() as db:
         rec = ApiKey(name=payload.name, key=payload.key, active=bool(payload.active))
@@ -149,6 +160,7 @@ def add_key(payload: ApiKeyIn, x_admin_token: Optional[str] = Header(None)):
 
 @router.delete("/keys/{key_id}")
 def delete_key(key_id: int, x_admin_token: Optional[str] = Header(None)):
+    """Delete an API key by id."""
     require_admin(x_admin_token)
     with get_session() as db:
         rec = db.query(ApiKey).filter(ApiKey.id == key_id).first()

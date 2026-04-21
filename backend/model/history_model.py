@@ -1,3 +1,5 @@
+"""SQLAlchemy models, engine, and session helpers for SQLite persistence."""
+
 from __future__ import annotations
 
 import os
@@ -20,6 +22,8 @@ Base = declarative_base()
 
 
 class HistorySession(Base):
+    """Saved explain session: user code plus JSON explanation payload."""
+
     __tablename__ = "history_sessions"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -30,6 +34,8 @@ class HistorySession(Base):
 
 
 class ApiKey(Base):
+    """Optional API keys for future auth (admin-managed)."""
+
     __tablename__ = "api_keys"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -41,6 +47,8 @@ class ApiKey(Base):
 
 
 class ApiLog(Base):
+    """Per-request access log written by the FastAPI middleware."""
+
     __tablename__ = "api_logs"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -53,6 +61,8 @@ class ApiLog(Base):
 
 
 class ShareSession(Base):
+    """Public share link: random token maps to code + response JSON."""
+
     __tablename__ = "share_sessions"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -73,4 +83,5 @@ def init_db() -> None:
 
 
 def get_session() -> Session:
+    """Return a new SQLAlchemy session (caller manages commit/close, often via context manager)."""
     return SessionLocal()
