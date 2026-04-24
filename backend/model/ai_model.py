@@ -236,3 +236,131 @@ class AIModel:
                 "message": str(exc),
             }
 
+    def generate_project_overview(self, repo_context: str) -> Dict[str, Any]:
+        """Produce a structured markdown overview from repository file excerpts."""
+        if not self.rate_limiter.acquire():
+            wait = self.rate_limiter.wait_time()
+            return {
+                "ok": False,
+                "error": "rate_limit_exceeded",
+                "message": f"Rate limit exceeded. Please wait {wait:.1f} seconds.",
+            }
+        if not repo_context.strip():
+            return {"ok": False, "error": "empty_context", "message": "No repository context provided."}
+
+        system = (
+            "You are a senior software architect. Given excerpts from repository files, "
+            "write a clear project overview in Markdown with these sections exactly:\n"
+            "## Project summary\n## Main purpose\n## Architecture overview\n"
+            "## Important folders and files\n## Key modules\n## How files connect\n"
+            "## Main entry points\n## Technologies detected\n## Beginner-friendly explanation\n"
+            "Ground every claim in the provided excerpts. If unknown, say so briefly."
+        )
+        user = f"Repository excerpts:\n\n{repo_context}"
+
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": user},
+                ],
+                max_tokens=min(self.max_tokens_per_request, 3500),
+                temperature=0.35,
+            )
+            text = response.choices[0].message.content.strip()
+            return {"ok": True, "overview": text}
+        except Exception as exc:
+            return {"ok": False, "error": "generation_failed", "message": str(exc)}
+
+    def summarize_file(self, file_path: str, content: str) -> Dict[str, Any]:
+        """Short natural-language summary of a single file."""
+        if not self.rate_limiter.acquire():
+            wait = self.rate_limiter.wait_time()
+            return {
+                "ok": False,
+                "error": "rate_limit_exceeded",
+                "message": f"Rate limit exceeded. Please wait {wait:.1f} seconds.",
+            }
+        snippet = content[:8000]
+        system = "You summarize source files in 2–4 sentences for a developer."
+        user = f"File: {file_path}\n\n```\n{snippet}\n```"
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": user},
+                ],
+                max_tokens=400,
+                temperature=0.25,
+            )
+            return {"ok": True, "summary": response.choices[0].message.content.strip()}
+        except Exception as exc:
+            return {"ok": False, "error": "generation_failed", "message": str(exc)}
+
+    def answer_repo_question(
+        self,
+        question: str,
+        relevant_context: str,
+        chat_history: List[Dict[str, str]],
+    ) -> Dict[str, Any]:
+        """Answer using repository excerpts; prefers JSON with answer and referenced_files."""
+        if not self.rate_limiter.acquire():
+            wait = self.rate_limiter.wait_time()
+            return {
+                "ok": False,
+                "error": "rate_limit_exceeded",
+                "message": f"Rate limit exceeded. Please wait {wait:.1f} seconds.",
+            }
+
+        system = (
+            "You are an expert code assistant. Answer ONLY using the repository context provided. "
+            "If the context is insufficient, say what is missing. Cite concrete file paths when you "
+            "refer to code (backtick paths like `src/app.py`). "
+            "Respond with a single JSON object (no markdown fences) with keys: "
+            '"answer" (string, markdown allowed inside the string), '
+            '"referenced_files" (array of strings, repo-relative paths you relied on).'
+        )
+        ctx = f"Repository context:\n\n{relevant_context}\n\nQuestion:\n{question}"
+
+        messages: List[Dict[str, str]] = [{"role": "system", "content": system}]
+        for turn in chat_history[-24:]:
+            role = turn.get("role", "user")
+            content = turn.get("content", "")
+            if role not in ("user", "assistant") or not content:
+                continue
+            messages.append({"role": role, "content": content})
+        messages.append({"role": "user", "content": ctx})
+
+        try:
+            kwargs: Dict[str, Any] = {
+                "model": self.model,
+                "messages": messages,
+                "max_tokens": min(self.max_tokens_per_request, 2500),
+                "temperature": 0.25,
+            }
+            try:
+                response = self.client.chat.completions.create(
+                    **kwargs, response_format={"type": "json_object"}
+                )
+            except Exception:
+                response = self.client.chat.completions.create(**kwargs)
+
+            raw = response.choices[0].message.content.strip()
+            try:
+                data = json.loads(raw)
+            except json.JSONDecodeError:
+                return {"ok": True, "answer": raw, "referenced_files": []}
+
+            answer = str(data.get("answer", "")).strip()
+            refs = data.get("referenced_files") or []
+            if not isinstance(refs, list):
+                refs = []
+            refs = [str(x) for x in refs if isinstance(x, (str, int, float))]
+            if not answer:
+                answer = raw
+            return {"ok": True, "answer": answer, "referenced_files": refs}
+        except Exception as exc:
+            return {"ok": False, "error": "generation_failed", "message": str(exc)}
+

@@ -5,6 +5,7 @@ import React, { useState, useEffect } from 'react'
 import { useSettings } from './context/SettingsContext'
 import ExplanationView from './view/ExplanationView.jsx'
 import HistoryView from './view/HistoryView.jsx'
+import RepositoriesView from './view/RepositoriesView.jsx'
 import SettingsModal from './view/SettingsModal.jsx'
 import ShareView from './view/ShareView.jsx'
 
@@ -175,6 +176,7 @@ function AppContent() {
           {[
             { id: 'explain', label: 'Explain Code', desc: 'Get AI explanations' },
             { id: 'history', label: 'History', desc: 'Past sessions' },
+            { id: 'repositories', label: 'Repositories', desc: 'Upload & chat with codebases' },
           ].map(tab => (
             <button
               key={tab.id}
@@ -226,6 +228,9 @@ function AppContent() {
         )}
         {activeTab === 'history' && (
           <HistoryView onRerun={handleRerun} />
+        )}
+        {activeTab === 'repositories' && (
+          <RepositoriesView />
         )}
         {activeTab === 'share' && shareToken && (
           <ShareView token={shareToken} />

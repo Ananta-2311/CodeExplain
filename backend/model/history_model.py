@@ -79,6 +79,9 @@ SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, futu
 
 def init_db() -> None:
     """Create tables if they do not exist."""
+    # Import repository models so their tables are registered on ``Base.metadata``.
+    from model import repository_model  # noqa: F401
+
     Base.metadata.create_all(bind=engine)
 
 
