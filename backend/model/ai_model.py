@@ -273,6 +273,63 @@ class AIModel:
         except Exception as exc:
             return {"ok": False, "error": "generation_failed", "message": str(exc)}
 
+    def generate_data_flow_graph(self, repo_context: str) -> Dict[str, Any]:
+        """Infer high-level data/control flow as a JSON graph (nodes + directed links)."""
+        if not self.rate_limiter.acquire():
+            wait = self.rate_limiter.wait_time()
+            return {
+                "ok": False,
+                "error": "rate_limit_exceeded",
+                "message": f"Rate limit exceeded. Please wait {wait:.1f} seconds.",
+            }
+        if not repo_context.strip():
+            return {"ok": False, "error": "empty_context", "message": "No repository context provided."}
+
+        system = (
+            "You are a senior software architect. From repository file excerpts, infer how data and "
+            "requests move through the system at a high level (not every function).\n"
+            "Return ONE JSON object only (no markdown), with keys:\n"
+            '- "nodes": array of { "id": unique slug using letters, digits, underscore only; '
+            '"label": short display name (2–6 words); "group": one of '
+            "entry, api, service, data, external, infra, other }\n"
+            '- "links": array of { "source": node id, "target": node id, "label": optional short tag '
+            'like HTTP, JSON, SQL, events, cache }\n'
+            "Use 10–24 nodes when the codebase warrants it; fewer for tiny projects. "
+            "Tell a left-to-right story when possible: client/UI → routes/controllers → services → "
+            "database or external APIs. Only include edges you can justify from the excerpts; omit "
+            "uncertain links."
+        )
+        user = f"Repository excerpts:\n\n{repo_context}"
+
+        kwargs: Dict[str, Any] = {
+            "model": self.model,
+            "messages": [
+                {"role": "system", "content": system},
+                {"role": "user", "content": user},
+            ],
+            "max_tokens": min(self.max_tokens_per_request, 2800),
+            "temperature": 0.28,
+        }
+        try:
+            try:
+                response = self.client.chat.completions.create(
+                    **kwargs, response_format={"type": "json_object"}
+                )
+            except Exception:
+                response = self.client.chat.completions.create(**kwargs)
+            raw = response.choices[0].message.content.strip()
+            data = json.loads(raw)
+        except json.JSONDecodeError as exc:
+            return {"ok": False, "error": "invalid_json", "message": str(exc)}
+        except Exception as exc:
+            return {"ok": False, "error": "generation_failed", "message": str(exc)}
+
+        if isinstance(data, dict) and "nodes" not in data and isinstance(data.get("graph"), dict):
+            data = data["graph"]
+        if not isinstance(data, dict):
+            data = {}
+        return {"ok": True, "graph": data}
+
     def summarize_file(self, file_path: str, content: str) -> Dict[str, Any]:
         """Short natural-language summary of a single file."""
         if not self.rate_limiter.acquire():

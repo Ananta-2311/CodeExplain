@@ -3,6 +3,7 @@
  */
 import React, { useCallback, useEffect, useState } from 'react'
 import { useSettings } from '../context/SettingsContext'
+import RepoDataFlowPanel from './RepoDataFlowPanel'
 
 const API_BASE_URL = 'http://localhost:8000'
 
@@ -54,7 +55,7 @@ function FileTreePanel({ tree, theme, onSelectFile, selectedPath }) {
     )
   }
 
-  if (!tree || !tree.length) {
+  if (!Array.isArray(tree) || !tree.length) {
     return <div style={{ color: theme.textSecondary, fontSize: '13px' }}>No files</div>
   }
   return (
@@ -119,6 +120,10 @@ export default function RepositoriesView() {
   const [overviewLoading, setOverviewLoading] = useState(false)
   const [overviewError, setOverviewError] = useState(null)
 
+  const [dataFlowLoading, setDataFlowLoading] = useState(false)
+  const [dataFlowError, setDataFlowError] = useState(null)
+  const [dataFlowMessage, setDataFlowMessage] = useState(null)
+
   const [chatMessages, setChatMessages] = useState([])
   const [chatInput, setChatInput] = useState('')
   const [chatLoading, setChatLoading] = useState(false)
@@ -127,6 +132,7 @@ export default function RepositoriesView() {
   const [selectedPath, setSelectedPath] = useState(null)
   const [filePreview, setFilePreview] = useState(null)
   const [fileLoading, setFileLoading] = useState(false)
+  const [deletingId, setDeletingId] = useState(null)
 
   const loadRepos = useCallback(async () => {
     setListLoading(true)
@@ -152,6 +158,7 @@ export default function RepositoriesView() {
     setDetail(null)
     setDetailLoading(true)
     setOverviewError(null)
+    setDataFlowError(null)
     setChatError(null)
     setSelectedPath(null)
     setFilePreview(null)
@@ -196,6 +203,33 @@ export default function RepositoriesView() {
     }
   }
 
+  const deleteRepo = async (repoId, repoName, e) => {
+    e?.stopPropagation()
+    if (!repoId || deletingId) return
+    const label = repoName || 'this repository'
+    if (!window.confirm(`Delete “${label}”? This removes stored files, overview, and chat for that repo.`)) return
+    setDeletingId(repoId)
+    setError(null)
+    try {
+      const res = await fetch(`${API_BASE_URL}/repositories/${repoId}`, { method: 'DELETE' })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(formatApiError(data))
+      if (selectedId === repoId) {
+        setSelectedId(null)
+        setDetail(null)
+        setChatMessages([])
+        setSelectedPath(null)
+        setFilePreview(null)
+        setDataFlowError(null)
+      }
+      await loadRepos()
+    } catch (err) {
+      setError(err.message || 'Delete failed')
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
   const generateOverview = async () => {
     if (!selectedId) return
     setOverviewLoading(true)
@@ -216,6 +250,29 @@ export default function RepositoriesView() {
     } finally {
       setOverviewLoading(false)
       setOverviewMessage(null)
+    }
+  }
+
+  const generateDataFlow = async () => {
+    if (!selectedId) return
+    setDataFlowLoading(true)
+    setDataFlowMessage('Mapping data flow…')
+    setDataFlowError(null)
+    try {
+      const regenerate = Boolean(detail?.data_flow_graph?.nodes?.length)
+      const res = await fetch(`${API_BASE_URL}/repositories/${selectedId}/data-flow`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ regenerate }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(formatApiError(data))
+      setDetail((d) => (d ? { ...d, data_flow_graph: data.graph } : d))
+    } catch (e) {
+      setDataFlowError(e.message || 'Failed to build data flow map')
+    } finally {
+      setDataFlowLoading(false)
+      setDataFlowMessage(null)
     }
   }
 
@@ -282,11 +339,11 @@ export default function RepositoriesView() {
           Repositories
         </h2>
         <p style={{ color: theme.textSecondary, fontSize: '16px' }}>
-          Upload a codebase, get an AI overview, and ask questions with full-repo context
+          Upload a codebase, get an AI overview, an interactive data-flow map, and ask questions with full-repo context
         </p>
       </div>
 
-      {(uploadMessage || overviewMessage || chatBusyMessage) && (
+      {(uploadMessage || overviewMessage || dataFlowMessage || chatBusyMessage) && (
         <div style={{
           textAlign: 'center',
           padding: '12px',
@@ -296,7 +353,7 @@ export default function RepositoriesView() {
           color: theme.primary,
           fontWeight: 500,
         }}>
-          {uploadMessage || overviewMessage || chatBusyMessage}
+          {uploadMessage || overviewMessage || dataFlowMessage || chatBusyMessage}
         </div>
       )}
 
@@ -353,17 +410,43 @@ export default function RepositoriesView() {
                 key={r.repo_id}
                 onClick={() => loadDetail(r.repo_id)}
                 style={{
-                  padding: '14px 16px',
+                  padding: '12px 14px',
                   borderBottom: `1px solid ${theme.border}`,
                   cursor: 'pointer',
                   backgroundColor: selectedId === r.repo_id ? theme.selectedBg : theme.surfaceElevated,
                   color: theme.text,
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  justifyContent: 'space-between',
+                  gap: '10px',
                 }}
               >
-                <div style={{ fontWeight: 600 }}>{r.repo_name}</div>
-                <div style={{ fontSize: '12px', color: theme.textSecondary, marginTop: '4px' }}>
-                  {r.created_at ? new Date(r.created_at).toLocaleString() : ''}
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ fontWeight: 600 }}>{r.repo_name}</div>
+                  <div style={{ fontSize: '12px', color: theme.textSecondary, marginTop: '4px' }}>
+                    {r.created_at ? new Date(r.created_at).toLocaleString() : ''}
+                  </div>
                 </div>
+                <button
+                  type="button"
+                  title="Delete repository"
+                  onClick={(ev) => deleteRepo(r.repo_id, r.repo_name, ev)}
+                  disabled={deletingId === r.repo_id}
+                  style={{
+                    flexShrink: 0,
+                    padding: '6px 10px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    color: theme.error,
+                    background: settings.theme === 'dark' ? '#2d1515' : '#fff5f5',
+                    border: `1px solid ${theme.error}`,
+                    borderRadius: '6px',
+                    cursor: deletingId === r.repo_id ? 'wait' : 'pointer',
+                    opacity: deletingId === r.repo_id ? 0.65 : 1,
+                  }}
+                >
+                  {deletingId === r.repo_id ? '…' : 'Delete'}
+                </button>
               </div>
             ))}
             {!listLoading && repos.length === 0 && (
@@ -398,7 +481,7 @@ export default function RepositoriesView() {
                 <div>
                   <div style={{ fontWeight: 600, marginBottom: '10px', color: theme.text }}>File tree</div>
                   <FileTreePanel
-                    tree={detail.file_tree}
+                    tree={Array.isArray(detail.file_tree) ? detail.file_tree : []}
                     theme={theme}
                     onSelectFile={loadFile}
                     selectedPath={selectedPath}
@@ -472,6 +555,16 @@ export default function RepositoriesView() {
                       {detail.overview || (overviewLoading ? 'Generating…' : 'No overview yet. Click “Generate overview”.')}
                     </div>
                   </div>
+
+                  <RepoDataFlowPanel
+                    theme={theme}
+                    themeName={settings.theme === 'dark' ? 'dark' : 'light'}
+                    graphData={detail.data_flow_graph || null}
+                    loading={dataFlowLoading}
+                    error={dataFlowError}
+                    onGenerate={generateDataFlow}
+                    hasCached={Boolean(detail.data_flow_graph?.nodes?.length)}
+                  />
 
                   <div>
                     <div style={{ fontWeight: 600, marginBottom: '10px', color: theme.text }}>Repository chat</div>

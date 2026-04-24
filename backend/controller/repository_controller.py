@@ -22,6 +22,7 @@ from service.repository_service import (
     ExtractedFile,
     build_overview_context,
     extract_repository_from_zip,
+    sanitize_data_flow_graph,
     select_relevant_chunks,
     _chunk_lines,
 )
@@ -148,6 +149,13 @@ def get_repository(repo_id: str, include_chat: bool = True):
                 raise HTTPException(status_code=404, detail={"error": "not_found", "message": "Repository not found"})
             n_files = db.query(RepositoryFile).filter(RepositoryFile.repo_id == repo_id).count()
             n_chunks = db.query(RepositoryChunk).filter(RepositoryChunk.repo_id == repo_id).count()
+            df_graph: Optional[Dict[str, Any]] = None
+            raw_df = getattr(r, "data_flow_graph_json", None)
+            if raw_df:
+                try:
+                    df_graph = json.loads(raw_df)
+                except json.JSONDecodeError:
+                    df_graph = None
             out: Dict[str, Any] = {
                 "ok": True,
                 "repo_id": r.id,
@@ -155,6 +163,7 @@ def get_repository(repo_id: str, include_chat: bool = True):
                 "created_at": r.created_at.isoformat() if r.created_at else None,
                 "file_tree": json.loads(r.file_tree_json),
                 "overview": r.overview_text,
+                "data_flow_graph": df_graph,
                 "stats": {"files": n_files, "chunks": n_chunks},
             }
             if include_chat:
@@ -174,6 +183,23 @@ def get_repository(repo_id: str, include_chat: bool = True):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail={"error": "fetch_failed", "message": str(e)})
+
+
+@router.delete("/{repo_id}")
+def delete_repository(repo_id: str):
+    """Remove a repository and all stored files, chunks, and chat for that repo."""
+    try:
+        with get_session() as db:
+            r = db.query(Repository).filter(Repository.id == repo_id).first()
+            if not r:
+                raise HTTPException(status_code=404, detail={"error": "not_found", "message": "Repository not found"})
+            db.delete(r)
+            db.commit()
+        return {"ok": True, "repo_id": repo_id}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail={"error": "delete_failed", "message": str(e)})
 
 
 @router.get("/{repo_id}/file")
@@ -242,6 +268,64 @@ def generate_or_get_overview(repo_id: str, body: OverviewBody = OverviewBody()):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail={"error": "overview_failed", "message": str(e)})
+
+
+@router.post("/{repo_id}/data-flow")
+def generate_or_get_data_flow(repo_id: str, body: OverviewBody = OverviewBody()):
+    """Build or return cached AI data-flow graph (nodes + directed links)."""
+    try:
+        with get_session() as db:
+            r = db.query(Repository).filter(Repository.id == repo_id).first()
+            if not r:
+                raise HTTPException(status_code=404, detail={"error": "not_found", "message": "Repository not found"})
+            stored = getattr(r, "data_flow_graph_json", None)
+            if stored and not body.regenerate:
+                try:
+                    cached = json.loads(stored)
+                except json.JSONDecodeError:
+                    cached = None
+                if isinstance(cached, dict) and cached.get("nodes"):
+                    return {"ok": True, "graph": cached, "cached": True}
+
+            files = db.query(RepositoryFile).filter(RepositoryFile.repo_id == repo_id).order_by(RepositoryFile.path).all()
+            if not files:
+                raise HTTPException(status_code=400, detail={"error": "no_files", "message": "No files in repository"})
+
+            extracted = [ExtractedFile(rel_path=f.path, content=f.content) for f in files]
+            ctx = build_overview_context(extracted)
+
+        try:
+            ai = get_ai_model()
+        except HTTPException:
+            raise
+        result = ai.generate_data_flow_graph(ctx)
+        if not result.get("ok"):
+            err = result.get("error", "generation_failed")
+            if err == "rate_limit_exceeded":
+                raise HTTPException(status_code=429, detail=result)
+            raise HTTPException(status_code=500, detail=result)
+
+        graph = sanitize_data_flow_graph(result.get("graph") or {})
+        if not graph.get("nodes"):
+            raise HTTPException(
+                status_code=500,
+                detail={
+                    "error": "graph_empty",
+                    "message": "Could not build a data-flow map from the model output. Try “Regenerate map”.",
+                },
+            )
+
+        with get_session() as db:
+            r = db.query(Repository).filter(Repository.id == repo_id).first()
+            if r:
+                r.data_flow_graph_json = json.dumps(graph)
+                db.commit()
+
+        return {"ok": True, "graph": graph, "cached": False}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail={"error": "data_flow_failed", "message": str(e)})
 
 
 @router.post("/{repo_id}/chat")

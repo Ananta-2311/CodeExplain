@@ -20,6 +20,7 @@ class Repository(Base):
     name: Mapped[str] = mapped_column(String(512), nullable=False)
     file_tree_json: Mapped[str] = mapped_column(Text, nullable=False)
     overview_text: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    data_flow_graph_json: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
 
     files = relationship("RepositoryFile", back_populates="repository", cascade="all, delete-orphan")

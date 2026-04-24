@@ -1,13 +1,81 @@
 /**
  * Root layout: header, tab navigation, themed shell, and lazy-loaded feature views.
  */
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, Component } from 'react'
 import { useSettings } from './context/SettingsContext'
 import ExplanationView from './view/ExplanationView.jsx'
 import HistoryView from './view/HistoryView.jsx'
 import RepositoriesView from './view/RepositoriesView.jsx'
 import SettingsModal from './view/SettingsModal.jsx'
 import ShareView from './view/ShareView.jsx'
+
+/** Catches render errors in heavy tabs so one view cannot blank the entire shell. */
+class TabErrorBoundary extends Component {
+  constructor(props) {
+    super(props)
+    this.state = { error: null }
+  }
+
+  static getDerivedStateFromError(error) {
+    return { error }
+  }
+
+  componentDidCatch(error, info) {
+    console.error('TabErrorBoundary', error, info?.componentStack)
+  }
+
+  render() {
+    const { theme, children } = this.props
+    const { error } = this.state
+    if (error) {
+      return (
+        <div style={{
+          padding: '32px 24px',
+          maxWidth: 720,
+          margin: '0 auto',
+          color: theme?.text || '#222',
+          backgroundColor: theme?.surfaceElevated || '#fff',
+          borderRadius: 12,
+          border: `1px solid ${theme?.border || '#dee2e6'}`,
+        }}
+        >
+          <h2 style={{ marginTop: 0, fontSize: 20 }}>This tab crashed</h2>
+          <p style={{ color: theme?.textSecondary || '#555', lineHeight: 1.5 }}>
+            Something went wrong while rendering this screen. You can switch to another tab and come back, or reload the page.
+          </p>
+          <pre style={{
+            fontSize: 13,
+            overflow: 'auto',
+            padding: 12,
+            background: theme?.surface || '#f5f5f5',
+            borderRadius: 8,
+            color: theme?.error || '#b00020',
+          }}
+          >
+            {String(error?.message || error)}
+          </pre>
+          <button
+            type="button"
+            onClick={() => this.setState({ error: null })}
+            style={{
+              marginTop: 16,
+              padding: '10px 18px',
+              fontWeight: 600,
+              cursor: 'pointer',
+              borderRadius: 8,
+              border: 'none',
+              background: theme?.primary || '#0066cc',
+              color: '#fff',
+            }}
+          >
+            Try again
+          </button>
+        </div>
+      )
+    }
+    return children
+  }
+}
 
 /**
  * Holds tab state, share-route detection, and passes re-run code into Explain.
@@ -230,7 +298,9 @@ function AppContent() {
           <HistoryView onRerun={handleRerun} />
         )}
         {activeTab === 'repositories' && (
-          <RepositoriesView />
+          <TabErrorBoundary theme={theme}>
+            <RepositoriesView />
+          </TabErrorBoundary>
         )}
         {activeTab === 'share' && shareToken && (
           <ShareView token={shareToken} />

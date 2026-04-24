@@ -10,7 +10,7 @@ import uuid
 import zipfile
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, Union
 
 # Limits (override via env if needed)
 MAX_ZIP_BYTES = int(os.getenv("REPO_MAX_ZIP_BYTES", str(300 * 1024 * 1024)))  # 300 MB default
@@ -347,3 +347,61 @@ def select_relevant_chunks(
         if total >= max_chars:
             break
     return out
+
+
+_SLUG_ID = re.compile(r"^[a-zA-Z][a-zA-Z0-9_]{0,63}$")
+
+ALLOWED_FLOW_GROUPS = frozenset({"entry", "api", "service", "data", "external", "infra", "other"})
+
+
+def sanitize_data_flow_graph(raw: Union[Dict[str, Any], Any]) -> Dict[str, Any]:
+    """Normalize AI output into a bounded force-graph payload (nodes + links)."""
+    if not isinstance(raw, dict):
+        return {"nodes": [], "links": []}
+    max_nodes = int(os.getenv("REPO_DATA_FLOW_MAX_NODES", "36"))
+    max_links = int(os.getenv("REPO_DATA_FLOW_MAX_LINKS", "72"))
+    nodes_in = raw.get("nodes") if isinstance(raw.get("nodes"), list) else []
+    links_in = raw.get("links") if isinstance(raw.get("links"), list) else []
+
+    def make_slug(label: str, idx: int) -> str:
+        base = re.sub(r"[^a-zA-Z0-9_]+", "_", (label or "node").strip())[:40].strip("_")
+        if not base:
+            base = "node"
+        if not base[0].isalpha():
+            base = f"n_{base}"
+        base = base[:64]
+        if not _SLUG_ID.match(base):
+            base = f"node_{idx}"
+        return base[:64]
+
+    nodes: List[Dict[str, Any]] = []
+    seen_ids: set = set()
+    for i, n in enumerate(nodes_in[:max_nodes]):
+        if not isinstance(n, dict):
+            continue
+        nid = str(n.get("id", "")).strip()
+        label = str(n.get("label", "")).strip() or nid or f"Step {i + 1}"
+        if not nid or not _SLUG_ID.match(nid):
+            nid = make_slug(label, i)
+        orig = nid
+        suffix = 0
+        while nid in seen_ids:
+            suffix += 1
+            nid = f"{orig[:50]}_{suffix}"
+        seen_ids.add(nid)
+        g = str(n.get("group", "other")).strip().lower()
+        if g not in ALLOWED_FLOW_GROUPS:
+            g = "other"
+        nodes.append({"id": nid, "label": label[:96], "group": g, "type": "flow"})
+    id_set = {n["id"] for n in nodes}
+    links: List[Dict[str, Any]] = []
+    for L in links_in[:max_links]:
+        if not isinstance(L, dict):
+            continue
+        s = str(L.get("source", "")).strip()
+        t = str(L.get("target", "")).strip()
+        if s not in id_set or t not in id_set or s == t:
+            continue
+        lab = str(L.get("label", "")).strip()[:48]
+        links.append({"source": s, "target": t, "label": lab, "type": "flow"})
+    return {"nodes": nodes, "links": links}

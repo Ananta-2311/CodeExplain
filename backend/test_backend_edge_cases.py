@@ -9,6 +9,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 from model.lang_router import detect_language, parse_code
 from model.parser_model import ParserModel
+from service.repository_service import sanitize_data_flow_graph
 
 
 class BackendEdgeCaseTests(unittest.TestCase):
@@ -83,6 +84,24 @@ class BackendEdgeCaseTests(unittest.TestCase):
         result = parse_code("function greet(){ return 1; }", filename="app.js")
         self.assertTrue(result["ok"])
         self.assertEqual(result["tree"]["language"], "javascript")
+
+    def test_sanitize_data_flow_graph_keeps_valid_nodes_and_links(self):
+        raw = {
+            "nodes": [
+                {"id": "web_ui", "label": "Browser UI", "group": "entry"},
+                {"id": "api_layer", "label": "HTTP API", "group": "api"},
+                {"id": "bad_group", "label": "X", "group": "not_a_real_group"},
+            ],
+            "links": [
+                {"source": "web_ui", "target": "api_layer", "label": "JSON"},
+                {"source": "missing", "target": "api_layer", "label": "skip"},
+            ],
+        }
+        out = sanitize_data_flow_graph(raw)
+        self.assertEqual(len(out["nodes"]), 3)
+        self.assertEqual(out["nodes"][2]["group"], "other")
+        self.assertEqual(len(out["links"]), 1)
+        self.assertEqual(out["links"][0]["source"], "web_ui")
 
 
 if __name__ == "__main__":
