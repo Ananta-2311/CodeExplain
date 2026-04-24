@@ -6,7 +6,6 @@ import { useSettings } from './context/SettingsContext'
 import ExplanationView from './view/ExplanationView.jsx'
 import HistoryView from './view/HistoryView.jsx'
 import SettingsModal from './view/SettingsModal.jsx'
-import AdminView from './view/AdminView.jsx'
 import ShareView from './view/ShareView.jsx'
 
 /**
@@ -176,7 +175,6 @@ function AppContent() {
           {[
             { id: 'explain', label: 'Explain Code', desc: 'Get AI explanations' },
             { id: 'history', label: 'History', desc: 'Past sessions' },
-            { id: 'admin', label: 'Admin', desc: 'Dashboard' },
           ].map(tab => (
             <button
               key={tab.id}
@@ -228,9 +226,6 @@ function AppContent() {
         )}
         {activeTab === 'history' && (
           <HistoryView onRerun={handleRerun} />
-        )}
-        {activeTab === 'admin' && (
-          <AdminView />
         )}
         {activeTab === 'share' && shareToken && (
           <ShareView token={shareToken} />

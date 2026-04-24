@@ -34,7 +34,7 @@ class HistorySession(Base):
 
 
 class ApiKey(Base):
-    """Optional API keys for future auth (admin-managed)."""
+    """Optional API keys for future auth."""
 
     __tablename__ = "api_keys"
 

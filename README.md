@@ -8,7 +8,6 @@ AI-powered code explanation tool that analyzes code structure and provides expla
 - AST visualization with interactive graphs
 - Code improvement suggestions
 - History tracking and session sharing
-- Admin dashboard for monitoring
 - Supports Python, JavaScript, Java, and C++
 
 ## Requirements
@@ -56,7 +55,6 @@ Create `backend/.env` file:
 OPENAI_API_KEY=your_api_key_here
 OPENAI_MODEL=gpt-4o-mini
 DATABASE_URL=sqlite:///./codemuse.db
-ADMIN_TOKEN=changeme
 ```
 
 The `.env` file is already created with a template. Just add your OpenAI API key.
@@ -132,13 +130,11 @@ Main endpoints:
 - `POST /suggestions` - Code suggestions
 - `GET /history` - Session history
 - `POST /share` - Create shareable link
-- `GET /admin/stats` - Admin stats (requires `X-Admin-Token` header)
 
 Full API docs at http://localhost:8000/docs
 
 ## Notes
 
 - Don't commit `.env` file (already in `.gitignore`)
-- Change `ADMIN_TOKEN` in production
 - For production, use PostgreSQL instead of SQLite
 - Configure CORS properly in `main.py` for production
