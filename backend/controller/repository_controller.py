@@ -1,4 +1,10 @@
-"""Upload, list, overview, and chat APIs for repository-aware assistance."""
+"""Upload, list, overview, data-flow, file preview, and chat APIs for repository-aware assistance.
+
+Exposes REST endpoints under ``/repositories`` for zip upload, listing, detail
+(including optional chat history), per-file content, AI project overview,
+AI data-flow graph generation, and RAG-style Q&A over stored chunks. Uses
+SQLite via ``get_session`` and reuses ``get_ai_model`` from explain routes.
+"""
 
 from __future__ import annotations
 
@@ -52,6 +58,7 @@ class OverviewBody(BaseModel):
 
 
 def _repo_to_summary(r: Repository) -> Dict[str, Any]:
+    """Shape a ``Repository`` ORM row into the JSON list-item used by ``GET /repositories``."""
     return {
         "repo_id": r.id,
         "repo_name": r.name,

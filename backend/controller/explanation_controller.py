@@ -1,4 +1,10 @@
-"""Routes for parsing multi-language code and returning AI explanations (module + per-node)."""
+"""Routes for parsing multi-language code and returning AI explanations (module + per-node).
+
+``POST /explain`` accepts raw source, routes through ``parse_code``, optionally
+asks the model for a module overview plus per-class/function blurbs, and returns
+either a flat overview or a nested structure. Exposes ``get_ai_model`` for reuse
+by other routers (repositories, suggestions).
+"""
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel

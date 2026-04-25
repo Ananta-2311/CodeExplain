@@ -1,4 +1,10 @@
-"""SQLAlchemy models for uploaded repositories, files, chunks, and chat messages."""
+"""SQLAlchemy models for uploaded repositories, files, chunks, and chat messages.
+
+Tables mirror the zip-ingest pipeline: one ``Repository`` row per upload,
+``RepositoryFile`` for raw text, ``RepositoryChunk`` for retrieval slices, and
+``RepositoryChatMessage`` for persisted Q&A. Cascade deletes remove children
+when a repository row is deleted.
+"""
 
 from __future__ import annotations
 

@@ -1,3 +1,7 @@
+/**
+ * Tests for ``SettingsProvider`` / ``useSettings``: defaults, hydration, merge,
+ * persistence, and hook misuse guardrails.
+ */
 import React from 'react';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { cleanup, render, screen, waitFor } from '@testing-library/react';

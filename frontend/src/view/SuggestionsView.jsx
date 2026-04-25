@@ -1,5 +1,8 @@
 /**
  * Fetches `/suggestions` when enabled and lists AI refactor/security/perf ideas with copy actions.
+ *
+ * Child of Explain: POSTs current editor text to ``/suggestions`` and renders
+ * categorized cards with syntax-highlighted snippets when provided.
  */
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';

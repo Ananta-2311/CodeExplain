@@ -1,5 +1,9 @@
 /**
  * Primary screen: code editor, explain API, structured cards, export/share, viz, and suggestions.
+ *
+ * Orchestrates the Explain tab: holds source text and explanation state, calls
+ * ``/explain`` and related endpoints, embeds ``CodeVisualization`` and
+ * ``SuggestionsView``, and supports auto-run when opened from History/Share.
  */
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';

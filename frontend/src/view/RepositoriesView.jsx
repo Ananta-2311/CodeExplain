@@ -1,5 +1,9 @@
 /**
- * Repository zip upload, file tree, AI project overview, and context-aware chat.
+ * Repository zip upload, file tree, AI project overview, data-flow map, and chat.
+ *
+ * Lists saved repos from the API, supports upload/delete, loads file tree and
+ * previews, generates overview and data-flow via POST endpoints, and runs
+ * RAG-style chat against the selected repository.
  */
 import React, { useCallback, useEffect, useState } from 'react'
 import { useSettings } from '../context/SettingsContext'
@@ -7,6 +11,7 @@ import RepoDataFlowPanel from './RepoDataFlowPanel'
 
 const API_BASE_URL = 'http://localhost:8000'
 
+/** Normalize FastAPI ``detail`` (string or object) into a single user-facing message string. */
 function formatApiError(data) {
   const d = data?.detail
   if (!d) return data?.message || 'Request failed'
@@ -14,8 +19,11 @@ function formatApiError(data) {
   return d.message || d.error || 'Request failed'
 }
 
-/** Recursive file tree with correct repo-relative paths. */
+/**
+ * Renders the nested file tree for the selected repo; calls ``onSelectFile`` with posix paths.
+ */
 function FileTreePanel({ tree, theme, onSelectFile, selectedPath }) {
+  /** Recursively emit clickable rows for files and folder headers under ``prefix``. */
   const buildPath = (node, prefix) => {
     if (node.type === 'file') {
       const path = prefix ? `${prefix}/${node.name}` : node.name
@@ -67,6 +75,7 @@ function FileTreePanel({ tree, theme, onSelectFile, selectedPath }) {
   )
 }
 
+/** Main Repositories tab: sidebar list, detail pane (tree, overview, data flow, chat). */
 export default function RepositoriesView() {
   const { settings } = useSettings()
 

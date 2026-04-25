@@ -1,4 +1,11 @@
-"""Safe zip extraction, path filtering, chunking, and keyword retrieval for repositories."""
+"""Safe zip extraction, path filtering, chunking, and keyword retrieval for repositories.
+
+Reads uploaded zip bytes, rejects unsafe paths and oversized members, extracts
+allowed text files, builds a nested file tree, splits content into overlapping
+chunks for search, and normalizes AI-produced data-flow graphs. Used by
+``repository_controller`` for upload, chat context, overview, and data-flow
+endpoints. Limits are tunable via ``REPO_*`` environment variables.
+"""
 
 from __future__ import annotations
 
@@ -94,6 +101,8 @@ BINARY_EXTENSIONS = frozenset(
 
 @dataclass
 class ExtractedFile:
+    """One text file extracted from an archive (repository-relative path + body)."""
+
     rel_path: str
     content: str
 
@@ -109,6 +118,7 @@ def _is_safe_zip_entry(name: str) -> bool:
 
 
 def _should_skip_path(rel: Path) -> bool:
+    """Return True if path hits skip-dir names, secret filenames, or disallowed/binary extensions."""
     parts_lower = [p.lower() for p in rel.parts]
     for p in parts_lower:
         if p in SKIP_DIR_NAMES:
@@ -171,6 +181,7 @@ def build_file_tree(paths: Iterable[str]) -> List[Dict[str, Any]]:
     norm = sorted({p.replace("\\", "/").strip("/") for p in paths if p and p.strip("/")})
 
     def children_of(prefix: str) -> List[Dict[str, Any]]:
+        """Build one directory level of tree nodes (files and subdirs) under ``prefix``."""
         pref = f"{prefix}/" if prefix else ""
         next_level: Dict[str, str] = {}
         for p in norm:
@@ -303,10 +314,12 @@ _TOKEN_RE = re.compile(r"[a-zA-Z0-9_]{2,}")
 
 
 def tokenize_for_retrieval(text: str) -> List[str]:
+    """Lowercase alphanumeric tokens of length ≥2 for cheap lexical overlap scoring."""
     return [t.lower() for t in _TOKEN_RE.findall(text)]
 
 
 def score_chunk(question: str, path: str, content: str) -> float:
+    """Score how well ``path`` + ``content`` match question tokens (path hits weighted higher)."""
     q_tokens = set(tokenize_for_retrieval(question))
     if not q_tokens:
         return 0.0
@@ -364,6 +377,7 @@ def sanitize_data_flow_graph(raw: Union[Dict[str, Any], Any]) -> Dict[str, Any]:
     links_in = raw.get("links") if isinstance(raw.get("links"), list) else []
 
     def make_slug(label: str, idx: int) -> str:
+        """Derive a valid graph node id slug from a human label, falling back to ``node_{idx}``."""
         base = re.sub(r"[^a-zA-Z0-9_]+", "_", (label or "node").strip())[:40].strip("_")
         if not base:
             base = "node"

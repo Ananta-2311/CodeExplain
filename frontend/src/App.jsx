@@ -1,5 +1,9 @@
 /**
  * Root layout: header, tab navigation, themed shell, and lazy-loaded feature views.
+ *
+ * Owns which tab is active (Explain, History, Repositories, Share), opens the
+ * settings modal, detects `/share/:token` URLs, and wraps the Repositories tab
+ * in an error boundary so a render bug there cannot blank the whole app.
  */
 import React, { useState, useEffect, Component } from 'react'
 import { useSettings } from './context/SettingsContext'
@@ -9,21 +13,28 @@ import RepositoriesView from './view/RepositoriesView.jsx'
 import SettingsModal from './view/SettingsModal.jsx'
 import ShareView from './view/ShareView.jsx'
 
-/** Catches render errors in heavy tabs so one view cannot blank the entire shell. */
+/**
+ * React error boundary: catches child render errors and shows a recovery UI
+ * instead of unmounting the entire app shell.
+ */
 class TabErrorBoundary extends Component {
+  /** Initialize empty error state. */
   constructor(props) {
     super(props)
     this.state = { error: null }
   }
 
+  /** Store the thrown error so the next render can show a fallback panel. */
   static getDerivedStateFromError(error) {
     return { error }
   }
 
+  /** Log the failure (and React component stack) for debugging. */
   componentDidCatch(error, info) {
     console.error('TabErrorBoundary', error, info?.componentStack)
   }
 
+  /** Either render children or the inline “tab crashed” message with retry. */
   render() {
     const { theme, children } = this.props
     const { error } = this.state
@@ -78,7 +89,7 @@ class TabErrorBoundary extends Component {
 }
 
 /**
- * Holds tab state, share-route detection, and passes re-run code into Explain.
+ * Inner app shell: tabs, theme tokens, main content switcher, and settings modal state.
  */
 function AppContent() {
   const { settings } = useSettings()
@@ -312,7 +323,7 @@ function AppContent() {
   )
 }
 
-/** Default export used by main.jsx; thin wrapper around AppContent. */
+/** Application root component mounted from ``main.jsx`` (delegates to ``AppContent``). */
 export default function App() {
   return <AppContent />
 }

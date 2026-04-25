@@ -1,4 +1,8 @@
-"""Regex-based Java structure extraction (classes, interfaces, methods)."""
+"""Regex-based Java structure extraction (classes, interfaces, methods).
+
+Not a full parser—used when ``lang_router`` selects Java so Explain/Suggestions
+get a coarse AST-shaped tree compatible with the Python ``ParserModel`` output.
+"""
 
 import re
 from typing import Any, Dict, List, Optional

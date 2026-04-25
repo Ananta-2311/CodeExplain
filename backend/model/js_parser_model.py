@@ -1,4 +1,8 @@
-"""Regex-based JavaScript/TypeScript-ish structure extraction for demos."""
+"""Regex-based JavaScript/TypeScript-ish structure extraction for demos.
+
+Provides ``parse`` compatible with ``ParserModel`` for ``lang_router`` when the
+inferred language is JavaScript—best-effort class/function detection only.
+"""
 
 import re
 from typing import Any, Dict, List, Optional

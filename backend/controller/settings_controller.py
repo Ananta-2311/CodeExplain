@@ -1,4 +1,9 @@
-"""Persist and load per-user editor/theme settings in the database."""
+"""Persist and load per-user editor/theme settings in the database.
+
+Defines a lightweight ``UserSettings`` table on the shared ``Base``, then
+exposes ``POST /settings`` and ``GET /settings/{user_id}`` for JSON blobs that
+mirror the frontend settings shape (theme, font, language, editor theme).
+"""
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -49,7 +54,7 @@ class SettingsResponse(BaseModel):
 
 @router.post("", response_model=SettingsResponse)
 def save_settings(req: SettingsRequest):
-    """Save user settings to database."""
+    """Upsert JSON settings for ``req.user_id`` (defaults to ``default``) and return the stored row."""
     try:
         settings_dict = {
             "theme": req.theme or "light",

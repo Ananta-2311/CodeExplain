@@ -1,4 +1,8 @@
-"""CRUD API for saved explanation sessions stored in SQLite."""
+"""CRUD API for saved explanation sessions stored in SQLite.
+
+Endpoints under ``/history`` save full explain payloads, list summaries,
+fetch one row, delete one, or clear all—backed by ``HistorySession`` rows.
+"""
 
 from __future__ import annotations
 

@@ -1,4 +1,9 @@
-"""Routes that parse code and ask the AI for categorized improvement suggestions."""
+"""Routes that parse code and ask the AI for categorized improvement suggestions.
+
+``POST /suggestions`` parses the snippet, sends AST + source to the model, and
+returns JSON suggestions grouped by refactoring, complexity, security, and
+performance (with graceful fallback if JSON parsing fails).
+"""
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel

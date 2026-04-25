@@ -1,4 +1,10 @@
-"""OpenAI client wrapper, rate limiting, and prompt helpers for explanations."""
+"""OpenAI client wrapper, rate limiting, and prompt helpers for explanations.
+
+Wraps the OpenAI chat API with a simple rate limiter, builds prompts for code
+explanations (AST-based and per-node), repository overview, data-flow graph
+JSON, file summaries, and repo Q&A. Configuration comes from environment
+variables (``OPENAI_API_KEY``, ``OPENAI_MODEL``, token limits).
+"""
 
 import os
 import time

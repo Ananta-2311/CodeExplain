@@ -1,4 +1,9 @@
-"""Python ``ast`` parser that turns source into a nested JSON tree for AI and UI."""
+"""Python ``ast`` parser that turns source into a nested JSON tree for AI and UI.
+
+Walks ``ast.parse`` output (with optional repair for empty def/class bodies) and
+emits a stable JSON tree: module, classes, functions, variables, imports, and
+nested bodies—used by explain, visualize, and suggestions flows.
+"""
 
 import ast
 import re
@@ -153,6 +158,7 @@ class ParserModel:
         """Flatten ``ast.arguments`` into JSON-friendly arg descriptors (incl. *args/**kwargs)."""
 
         def arg_to_dict(a: ast.arg, default: Optional[str] = None) -> Dict[str, Any]:
+            """Serialize one parameter (name, optional type annotation, default repr)."""
             return {
                 "name": a.arg,
                 "annotation": self._expr_to_str(a.annotation) if getattr(a, "annotation", None) else None,

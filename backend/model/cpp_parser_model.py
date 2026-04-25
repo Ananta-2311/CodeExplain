@@ -1,4 +1,8 @@
-"""Regex-based C++ structure extraction (classes, structs, functions, namespaces)."""
+"""Regex-based C++ structure extraction (classes, structs, functions, namespaces).
+
+Lightweight alternative to a full libclang pipeline; emits a module-shaped JSON
+tree when ``lang_router`` picks C++ for the snippet.
+"""
 
 import re
 from typing import Any, Dict, List, Optional

@@ -1,4 +1,9 @@
-"""Detect source language and delegate parsing to the appropriate parser model."""
+"""Detect source language and delegate parsing to the appropriate parser model.
+
+Centralizes language inference (hint, filename extension, token heuristics)
+and returns a small structured parse result from the correct parser
+(Python, JavaScript, Java, or C++). Used by ``/explain`` and related flows.
+"""
 
 from __future__ import annotations
 

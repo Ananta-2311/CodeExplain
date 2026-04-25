@@ -1,5 +1,8 @@
 /**
  * Resolves `/share/:token` payloads and embeds ExplanationView with loaded code + auto-run.
+ *
+ * Fetches ``GET /share/{token}`` for stored code, then mounts ``ExplanationView``
+ * with ``autoRun`` so the visitor immediately sees an explanation.
  */
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'

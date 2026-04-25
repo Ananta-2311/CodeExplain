@@ -80,11 +80,21 @@ npm run dev
 
 ## Testing
 
+**Backend (green/red in the terminal):** install dev deps once, then use pytest:
+
 ```bash
 cd backend
 source .venv/bin/activate
-python test_ai_model.py
-python test_integration.py  # Requires backend to be running
+pip install -r requirements.txt -r requirements-dev.txt
+pytest test_backend.py -v
+```
+
+Without pytest, plain unittest still works: `python -m unittest test_backend -v`.
+
+**Optional:** HTTP checks against a running API (default http://localhost:8000):
+
+```bash
+cd backend && python test_backend.py --live-api
 ```
 
 ## Troubleshooting

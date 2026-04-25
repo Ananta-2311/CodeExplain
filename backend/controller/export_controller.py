@@ -1,4 +1,8 @@
-"""Downloadable exports of explanations as Markdown or PDF (ReportLab)."""
+"""Downloadable exports of explanations as Markdown or PDF (ReportLab).
+
+``POST /export`` accepts code plus structured explanation JSON and returns
+either a Markdown string or a generated PDF bytes stream built with ReportLab.
+"""
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import Response

@@ -1,5 +1,8 @@
 /**
  * Interactive data-flow map for an uploaded repository (force-directed graph).
+ *
+ * Wraps ``react-force-graph-2d`` with theme-aware pill nodes, optional zoom
+ * controls, and a generate/regenerate button wired to ``POST .../data-flow``.
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ForceGraph2D from 'react-force-graph-2d'
@@ -14,6 +17,7 @@ const GROUP_COLORS = {
   other: '#90a4ae',
 }
 
+/** Resolve fill color for a node from its ``group`` key (unknown → ``other``). */
 function groupColor(node) {
   return GROUP_COLORS[node.group] || GROUP_COLORS.other
 }
@@ -109,6 +113,7 @@ export default function RepoDataFlowPanel({
     return () => window.clearTimeout(id)
   }, [fgData])
 
+  /** Custom 2D canvas paint for each graph node (rounded pill, gradient fill, label). */
   const drawNode = useCallback(
     (node, ctx, globalScale) => {
       const x = node.x
@@ -149,6 +154,7 @@ export default function RepoDataFlowPanel({
     [themeName],
   )
 
+  /** Hit-test overlay for pointer interaction; matches ``drawNode`` bounds. */
   const paintPointer = useCallback((node, color, ctx, globalScale) => {
     const px = node.x
     const py = node.y
@@ -166,6 +172,7 @@ export default function RepoDataFlowPanel({
     ctx.fillRect(px - w / 2, py - h / 2, w, h)
   }, [])
 
+  /** Edge stroke color tuned for light vs dark theme readability. */
   const linkColor = useCallback(
     () => (themeName === 'dark' ? 'rgba(129, 173, 248, 0.55)' : 'rgba(0, 102, 204, 0.45)'),
     [themeName],

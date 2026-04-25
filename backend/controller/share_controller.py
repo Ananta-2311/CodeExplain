@@ -1,4 +1,8 @@
-"""Create and resolve time-limited share links for a code + explanation snapshot."""
+"""Create and resolve time-limited share links for a code + explanation snapshot.
+
+``POST /share`` stores code + response JSON with a random token; ``GET /share/{token}``
+returns the payload if not expired—used by the frontend share route.
+"""
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel

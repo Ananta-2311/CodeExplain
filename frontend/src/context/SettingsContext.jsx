@@ -1,5 +1,8 @@
 /**
  * Global UI settings (theme, font size, language) with localStorage persistence.
+ *
+ * ``SettingsProvider`` hydrates from ``codemuse_settings`` on mount and writes
+ * back on change. ``useSettings`` exposes read/update to any nested component.
  */
 import React, { createContext, useContext, useState, useEffect } from 'react';
 

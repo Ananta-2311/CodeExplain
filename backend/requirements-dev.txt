@@ -1,0 +1,3 @@
+# Install alongside requirements.txt for local development and colored test runs:
+#   pip install -r requirements.txt -r requirements-dev.txt
+pytest>=8.0

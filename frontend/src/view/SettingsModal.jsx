@@ -1,5 +1,8 @@
 /**
  * Modal overlay to edit theme, font size, and default language; syncs to API when possible.
+ *
+ * Drafts edits in local state, merges into ``SettingsContext`` on save, and
+ * optionally POSTs to ``/settings`` for server-side persistence.
  */
 import React, { useState, useEffect } from 'react';
 import { useSettings } from '../context/SettingsContext';

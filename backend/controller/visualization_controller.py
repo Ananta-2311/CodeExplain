@@ -1,4 +1,9 @@
-"""Routes and AST analysis for building call/inheritance graphs for the visualization UI."""
+"""Routes and AST analysis for building call/inheritance graphs for the visualization UI.
+
+``POST /visualize`` parses Python only, walks the AST to collect definitions,
+calls, inheritance, and coarse variable usage, then returns ``nodes`` and
+``links`` for the React force-graph in the Explain tab.
+"""
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel

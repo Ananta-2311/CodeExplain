@@ -1,4 +1,10 @@
-"""SQLAlchemy models, engine, and session helpers for SQLite persistence."""
+"""SQLAlchemy models, engine, and session helpers for SQLite persistence.
+
+Defines shared ``Base``, core tables (history, API logs, shares), the global
+``engine``/``SessionLocal``, ``init_db()`` to create tables and migrate the
+repository ``data_flow_graph_json`` column when missing, and ``get_session()``
+for request-scoped DB access.
+"""
 
 from __future__ import annotations
 
@@ -97,7 +103,7 @@ def _ensure_repository_data_flow_column() -> None:
 
 
 def init_db() -> None:
-    """Create tables if they do not exist."""
+    """Create all ORM tables if missing and apply lightweight SQLite/Postgres column upgrades."""
     # Import repository models so their tables are registered on ``Base.metadata``.
     from model import repository_model  # noqa: F401
 
@@ -106,5 +112,5 @@ def init_db() -> None:
 
 
 def get_session() -> Session:
-    """Return a new SQLAlchemy session (caller manages commit/close, often via context manager)."""
+    """Factory: return a new ``Session`` bound to the global engine (caller commits/closes)."""
     return SessionLocal()

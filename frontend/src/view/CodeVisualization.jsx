@@ -1,5 +1,8 @@
 /**
  * Fetches `/visualize` graph JSON and renders an interactive force-directed 2D graph with filters.
+ *
+ * Posts the same Python source as the Explain tab, keeps derived nodes/links in
+ * state, supports type filters, hover highlighting, and zoom controls.
  */
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';

@@ -1,5 +1,8 @@
 /**
  * Lists saved explanation sessions from the API; inspect, delete, or re-run code.
+ *
+ * Two-pane UI: fetch ``GET /history``, show titles/dates, load detail on
+ * selection, and optionally hand code back to Explain via ``onRerun``.
  */
 import React, { useEffect, useState } from 'react'
 import { useSettings } from '../context/SettingsContext'

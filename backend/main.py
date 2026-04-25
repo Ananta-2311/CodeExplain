@@ -1,4 +1,9 @@
-"""FastAPI entrypoint for the CodeMuse API: routers, CORS, DB init, and request logging."""
+"""FastAPI entrypoint for the CodeMuse API: routers, CORS, DB init, and request logging.
+
+Builds the ``FastAPI`` app, runs ``init_db()`` once at import, registers global
+middleware to log requests into SQLite, enables permissive CORS for local dev,
+and includes all feature routers. Run with ``uvicorn main:app``.
+"""
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -19,7 +24,10 @@ init_db()
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
-    """Record each HTTP request path, status, latency, and errors to the database."""
+    """Time the request, forward it downstream, then persist method/path/status/latency to ``ApiLog``.
+
+    Swallows logging failures so a broken log table never takes down the API.
+    """
     start = time.perf_counter()
     response = None
     error_msg = None
@@ -56,7 +64,7 @@ app.add_middleware(
 
 @app.get("/health")
 def health_check():
-    """Liveness probe for load balancers and monitoring."""
+    """Return a minimal JSON payload so deploys and uptime checks can verify the process is up."""
     return {"status": "ok"}
 
 
