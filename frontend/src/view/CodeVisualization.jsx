@@ -14,9 +14,10 @@ const API_BASE_URL = 'http://localhost:8000';
 /**
  * @param {object} props
  * @param {string} props.code Source text sent to the visualization API (same as explain tab).
+ * @param {string} [props.language] Selected editor language.
  * @param {(graph: object) => void} [props.onGraphData] Optional notifier when graph loads.
  */
-export default function CodeVisualization({ code, onGraphData }) {
+export default function CodeVisualization({ code, language = 'python', onGraphData }) {
   const { settings } = useSettings();
   
   /** Color tokens for loading/error/chrome around the graph canvas. */
@@ -73,7 +74,7 @@ export default function CodeVisualization({ code, onGraphData }) {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ code }),
+          body: JSON.stringify({ code, language }),
         });
 
         const data = await response.json();
@@ -94,7 +95,7 @@ export default function CodeVisualization({ code, onGraphData }) {
     };
 
     fetchGraphData();
-  }, [code, onGraphData]);
+  }, [code, language, onGraphData]);
 
   useEffect(() => {
     const el = wrapRef.current;

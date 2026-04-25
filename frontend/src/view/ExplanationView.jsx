@@ -632,13 +632,13 @@ export default function ExplanationView({ initialCode = '', autoRun = false, onA
               }}>
                 Data Flow Visualization
               </h2>
-              <CodeVisualization code={code} />
+              <CodeVisualization code={code} language={settings.language || 'python'} />
             </div>
           </div>
 
           {/* Suggestions Section - Full Width */}
           <div style={{ marginTop: '40px' }}>
-            <SuggestionsView code={code} shouldFetch={true} />
+            <SuggestionsView code={code} language={settings.language || 'python'} shouldFetch={true} />
           </div>
 
           {/* Raw Code Display with Syntax Highlighting - Full Width */}

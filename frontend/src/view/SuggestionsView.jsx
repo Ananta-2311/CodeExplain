@@ -38,9 +38,9 @@ const CATEGORY_LABELS = {
 };
 
 /**
- * @param {{ code: string, shouldFetch?: boolean }} props When `shouldFetch` is false, clears suggestions.
+ * @param {{ code: string, language?: string, shouldFetch?: boolean }} props When `shouldFetch` is false, clears suggestions.
  */
-export default function SuggestionsView({ code, shouldFetch = false }) {
+export default function SuggestionsView({ code, language = 'python', shouldFetch = false }) {
   const { settings } = useSettings();
   const [suggestions, setSuggestions] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -95,6 +95,7 @@ export default function SuggestionsView({ code, shouldFetch = false }) {
       try {
         const response = await axios.post(`${API_BASE_URL}/suggestions`, {
           code: code,
+          language: language,
         });
 
         if (response.data.ok) {
@@ -118,7 +119,7 @@ export default function SuggestionsView({ code, shouldFetch = false }) {
     };
 
     fetchSuggestions();
-  }, [code, shouldFetch]);
+  }, [code, language, shouldFetch]);
 
   /** Copy snippet text and briefly show "Copied" for the matching button id. */
   const copyToClipboard = async (text, suggestionId) => {

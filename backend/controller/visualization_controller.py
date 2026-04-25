@@ -8,21 +8,19 @@ calls, inheritance, and coarse variable usage, then returns ``nodes`` and
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Any, Dict, List, Set, Optional, Tuple
-from model.parser_model import ParserModel
+from model.lang_router import parse_code
 import ast
 import re
 
 
 router = APIRouter(prefix="/visualize", tags=["visualize"])
 
-# Initialize parser (singleton pattern)
-_parser = ParserModel()
-
-
 class VisualizeRequest(BaseModel):
     """Client body for ``POST /visualize``: Python source to graph."""
 
     code: str
+    language: Optional[str] = None
+    filename: Optional[str] = None
 
 
 class ASTAnalyzer:
@@ -413,8 +411,78 @@ def visualize(req: VisualizeRequest):
     Returns a graph structure with nodes and edges suitable for D3.js rendering.
     """
     try:
-        analyzer = ASTAnalyzer(req.code)
-        graph_data = analyzer.analyze()
+        if (req.language or "").lower() in ("python", "py", ""):
+            analyzer = ASTAnalyzer(req.code)
+            graph_data = analyzer.analyze()
+        else:
+            parsed = parse_code(req.code, filename=req.filename, hint=req.language)
+            if not parsed.get("ok"):
+                if parsed.get("error") == "syntax_error":
+                    raise HTTPException(
+                        status_code=400,
+                        detail={
+                            "error": "syntax_error",
+                            "message": parsed.get("message", "Invalid syntax"),
+                            "line": parsed.get("lineno"),
+                            "hint": "Please check your code for syntax errors.",
+                        },
+                    )
+                raise HTTPException(
+                    status_code=400,
+                    detail={
+                        "error": "parse_failed",
+                        "message": parsed.get("message", "Failed to parse code"),
+                    },
+                )
+
+            tree = parsed.get("tree", {})
+            nodes: List[Dict[str, Any]] = []
+            links: List[Dict[str, Any]] = []
+            module_children = tree.get("children", []) if isinstance(tree, dict) else []
+
+            for child in module_children:
+                name = child.get("name") or "unnamed"
+                node_type = child.get("type", "node")
+                group = "class" if node_type == "class" else "function" if "function" in node_type else "variable"
+                nodes.append(
+                    {
+                        "id": name,
+                        "label": name,
+                        "full_name": name,
+                        "type": node_type,
+                        "group": group,
+                        "line": child.get("start"),
+                    }
+                )
+
+                for nested in child.get("children", []) or []:
+                    nested_name = nested.get("name") or "unnamed"
+                    nested_type = nested.get("type", "node")
+                    nested_group = "class" if nested_type == "class" else "function" if "function" in nested_type else "variable"
+                    nodes.append(
+                        {
+                            "id": f"{name}.{nested_name}",
+                            "label": nested_name,
+                            "full_name": f"{name}.{nested_name}",
+                            "type": nested_type,
+                            "group": nested_group,
+                            "line": nested.get("start"),
+                        }
+                    )
+                    links.append(
+                        {
+                            "source": name,
+                            "target": f"{name}.{nested_name}",
+                            "type": "contains",
+                            "label": "contains",
+                        }
+                    )
+
+            graph_data = {
+                "nodes": nodes,
+                "links": links,
+                "imports": [],
+            }
         
         return {
             "ok": True,

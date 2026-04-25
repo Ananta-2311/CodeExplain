@@ -8,14 +8,13 @@ performance (with graceful fallback if JSON parsing fails).
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Any, Dict, List, Optional
-from model.parser_model import ParserModel
+from model.lang_router import parse_code
 from model.ai_model import AIModel
 import json
 
 
 router = APIRouter(prefix="/suggestions", tags=["suggestions"])
 
-_parser = ParserModel()
 _ai_model: AIModel | None = None
 
 
@@ -42,6 +41,8 @@ class SuggestionRequest(BaseModel):
 
     code: str
     focus_areas: Optional[List[str]] = None
+    language: Optional[str] = None
+    filename: Optional[str] = None
 
 
 class SuggestionGenerator:
@@ -55,6 +56,7 @@ class SuggestionGenerator:
         self,
         source_code: str,
         ast_data: Dict[str, Any],
+        language: str = "python",
         focus_areas: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """Generate improvement suggestions from code and AST.
@@ -89,7 +91,7 @@ class SuggestionGenerator:
             
             system_prompt = (
                 "You are an expert code reviewer and software engineering consultant. "
-                "Analyze the provided Python code and its AST structure to generate "
+                f"Analyze the provided {language} code and its AST-like structure to generate "
                 "actionable improvement suggestions. Focus on:\n"
                 "1. **Refactoring**: Better code structure, DRY principles, design patterns\n"
                 "2. **Complexity Reduction**: Simplify logic, reduce nesting, improve readability\n"
@@ -120,8 +122,8 @@ class SuggestionGenerator:
             )
             
             user_prompt = (
-                "Here is the Python code and its AST structure:\n\n"
-                f"Source Code:\n```python\n{source_code}\n```\n\n"
+                f"Here is the {language} code and its AST-like structure:\n\n"
+                f"Source Code:\n```{language}\n{source_code}\n```\n\n"
                 f"AST Structure:\n```json\n{ast_json}\n```\n\n"
                 "Analyze this code and provide improvement suggestions."
             )
@@ -210,7 +212,7 @@ def get_suggestions(req: SuggestionRequest):
     """
     # Step 1: Parse the code into AST
     try:
-        parsed = _parser.parse(req.code)
+        parsed = parse_code(req.code, filename=req.filename, hint=req.language)
     except Exception as e:
         raise HTTPException(
             status_code=500,
@@ -228,9 +230,9 @@ def get_suggestions(req: SuggestionRequest):
                 status_code=400,
                 detail={
                     "error": "syntax_error",
-                    "message": parsed.get("message", "Invalid Python syntax"),
+                    "message": parsed.get("message", "Invalid syntax"),
                     "line": parsed.get("lineno"),
-                    "hint": "Please check your Python code for syntax errors.",
+                    "hint": "Please check your code for syntax errors.",
                 },
             )
         else:
@@ -261,6 +263,7 @@ def get_suggestions(req: SuggestionRequest):
         result = generator.generate_suggestions(
             source_code=req.code,
             ast_data=parsed,
+            language=(req.language or parsed.get("tree", {}).get("language", "python")),
             focus_areas=req.focus_areas,
         )
         
