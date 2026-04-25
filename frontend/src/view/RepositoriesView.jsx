@@ -67,7 +67,7 @@ function FileTreePanel({ tree, theme, onSelectFile, selectedPath }) {
     return <div style={{ color: theme.textSecondary, fontSize: '13px' }}>No files</div>
   }
   return (
-    <div style={{ maxHeight: '42vh', overflowY: 'auto' }}>
+    <div style={{ maxHeight: '46vh', overflowY: 'auto', paddingRight: '4px' }}>
       {tree.map((node, i) => (
         <React.Fragment key={`${node.name}-${i}`}>{buildPath(node, '')}</React.Fragment>
       ))}
@@ -341,13 +341,20 @@ export default function RepositoriesView() {
     overflow: 'hidden',
   }
 
+  const sectionCardStyle = {
+    border: `1px solid ${theme.border}`,
+    borderRadius: '10px',
+    background: theme.surface,
+    padding: '14px',
+  }
+
   return (
     <div>
-      <div style={{ marginBottom: '32px', textAlign: 'center' }}>
-        <h2 style={{ marginTop: 0, fontSize: '32px', fontWeight: 700, color: theme.text, marginBottom: '8px' }}>
+      <div style={{ marginBottom: '24px', textAlign: 'center' }}>
+        <h2 style={{ marginTop: 0, fontSize: '30px', fontWeight: 700, color: theme.text, marginBottom: '8px' }}>
           Repositories
         </h2>
-        <p style={{ color: theme.textSecondary, fontSize: '16px' }}>
+        <p style={{ color: theme.textSecondary, fontSize: '15px', margin: 0 }}>
           Upload a codebase, get an AI overview, an interactive data-flow map, and ask questions with full-repo context
         </p>
       </div>
@@ -379,7 +386,7 @@ export default function RepositoriesView() {
         </div>
       )}
 
-      <div style={{ ...panelStyle, padding: '20px', marginBottom: '24px' }}>
+      <div style={{ ...panelStyle, padding: '16px 18px', marginBottom: '20px' }}>
         <div style={{ fontWeight: 600, marginBottom: '12px', color: theme.text }}>Upload repository (.zip)</div>
         <label style={{
           display: 'inline-block',
@@ -399,7 +406,7 @@ export default function RepositoriesView() {
         </span>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '280px minmax(0, 1fr)', gap: '18px' }}>
         <div style={panelStyle}>
           <div style={{
             padding: '14px 16px',
@@ -410,7 +417,7 @@ export default function RepositoriesView() {
           }}>
             Your repositories ({repos.length})
           </div>
-          <div style={{ maxHeight: '70vh', overflowY: 'auto' }}>
+          <div style={{ maxHeight: '72vh', overflowY: 'auto' }}>
             {listLoading && (
               <div style={{ padding: '24px', color: theme.textSecondary }}>Loading…</div>
             )}
@@ -419,7 +426,7 @@ export default function RepositoriesView() {
                 key={r.repo_id}
                 onClick={() => loadDetail(r.repo_id)}
                 style={{
-                  padding: '12px 14px',
+                  padding: '10px 12px',
                   borderBottom: `1px solid ${theme.border}`,
                   cursor: 'pointer',
                   backgroundColor: selectedId === r.repo_id ? theme.selectedBg : theme.surfaceElevated,
@@ -427,12 +434,12 @@ export default function RepositoriesView() {
                   display: 'flex',
                   alignItems: 'flex-start',
                   justifyContent: 'space-between',
-                  gap: '10px',
+                  gap: '8px',
                 }}
               >
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div style={{ fontWeight: 600 }}>{r.repo_name}</div>
-                  <div style={{ fontSize: '12px', color: theme.textSecondary, marginTop: '4px' }}>
+                  <div style={{ fontSize: '11px', color: theme.textSecondary, marginTop: '4px' }}>
                     {r.created_at ? new Date(r.created_at).toLocaleString() : ''}
                   </div>
                 </div>
@@ -443,8 +450,8 @@ export default function RepositoriesView() {
                   disabled={deletingId === r.repo_id}
                   style={{
                     flexShrink: 0,
-                    padding: '6px 10px',
-                    fontSize: '12px',
+                    padding: '5px 9px',
+                    fontSize: '11px',
                     fontWeight: 600,
                     color: theme.error,
                     background: settings.theme === 'dark' ? '#2d1515' : '#fff5f5',
@@ -476,7 +483,7 @@ export default function RepositoriesView() {
           }}>
             {detail ? detail.repo_name : 'Repository detail'}
           </div>
-          <div style={{ padding: '20px' }}>
+          <div style={{ padding: '16px' }}>
             {detailLoading && (
               <div style={{ color: theme.textSecondary }}>Loading repository…</div>
             )}
@@ -486,8 +493,8 @@ export default function RepositoriesView() {
               </div>
             )}
             {!detailLoading && detail && (
-              <div style={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: '20px', alignItems: 'start' }}>
-                <div>
+              <div style={{ display: 'grid', gridTemplateColumns: '300px minmax(0, 1fr)', gap: '16px', alignItems: 'start' }}>
+                <div style={{ ...sectionCardStyle, position: 'sticky', top: '12px' }}>
                   <div style={{ fontWeight: 600, marginBottom: '10px', color: theme.text }}>File tree</div>
                   <FileTreePanel
                     tree={Array.isArray(detail.file_tree) ? detail.file_tree : []}
@@ -510,7 +517,7 @@ export default function RepositoriesView() {
                           border: `1px solid ${theme.border}`,
                           borderRadius: '8px',
                           fontSize: '11px',
-                          maxHeight: '200px',
+                          maxHeight: '220px',
                           overflow: 'auto',
                           whiteSpace: 'pre-wrap',
                           wordBreak: 'break-word',
@@ -523,8 +530,8 @@ export default function RepositoriesView() {
                   )}
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                  <div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', minWidth: 0 }}>
+                  <div style={sectionCardStyle}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
                       <span style={{ fontWeight: 600, color: theme.text }}>Project overview</span>
                       <button
@@ -575,13 +582,13 @@ export default function RepositoriesView() {
                     hasCached={Boolean(detail.data_flow_graph?.nodes?.length)}
                   />
 
-                  <div>
+                  <div style={sectionCardStyle}>
                     <div style={{ fontWeight: 600, marginBottom: '10px', color: theme.text }}>Repository chat</div>
                     <div style={{
                       border: `1px solid ${theme.border}`,
                       borderRadius: '8px',
                       background: theme.surface,
-                      maxHeight: '280px',
+                      maxHeight: '260px',
                       overflowY: 'auto',
                       padding: '12px',
                       marginBottom: '10px',

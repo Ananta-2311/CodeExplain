@@ -6,6 +6,7 @@
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ForceGraph2D from 'react-force-graph-2d'
+import * as d3 from 'd3'
 
 const GROUP_COLORS = {
   entry: '#7c4dff',
@@ -43,18 +44,18 @@ export default function RepoDataFlowPanel({
 }) {
   const graphRef = useRef(null)
   const wrapRef = useRef(null)
-  const [dims, setDims] = useState({ w: 640, h: 440 })
+  const [dims, setDims] = useState({ w: 640, h: 460 })
 
   useEffect(() => {
     const el = wrapRef.current
     if (!el || typeof ResizeObserver === 'undefined') return undefined
     const ro = new ResizeObserver(() => {
       const r = el.getBoundingClientRect()
-      setDims({ w: Math.max(280, Math.floor(r.width)), h: 440 })
+      setDims((prev) => ({ ...prev, w: Math.max(280, Math.floor(r.width)) }))
     })
     ro.observe(el)
     const r = el.getBoundingClientRect()
-    setDims({ w: Math.max(280, Math.floor(r.width)), h: 440 })
+    setDims((prev) => ({ ...prev, w: Math.max(280, Math.floor(r.width)) }))
     return () => ro.disconnect()
   }, [])
 
@@ -80,6 +81,7 @@ export default function RepoDataFlowPanel({
           id,
           label: (label || id).slice(0, 120),
           group: typeof n.group === 'string' ? n.group : 'other',
+          radius: Math.min(54, Math.max(20, ((label || id).length || 10) * 0.9 + 16)),
         })
       }
       if (!nodes.length) return null
@@ -111,6 +113,20 @@ export default function RepoDataFlowPanel({
       graphRef.current?.zoomToFit(480, 72)
     }, 280)
     return () => window.clearTimeout(id)
+  }, [fgData])
+
+  useEffect(() => {
+    if (!fgData || !graphRef.current) return
+    const count = fgData.nodes.length
+    const linkDistance = Math.min(190, Math.max(95, 70 + Math.sqrt(count) * 8))
+    const charge = Math.max(-900, -280 - count * 5)
+    graphRef.current.d3Force('charge', d3.forceManyBody().strength(charge))
+    graphRef.current.d3Force('link', d3.forceLink().id((n) => n.id).distance(linkDistance).strength(0.5))
+    graphRef.current.d3Force('center', d3.forceCenter())
+    graphRef.current.d3Force('collide', d3.forceCollide((n) => (n.radius || 24) + 14).strength(0.95))
+    const nextHeight = Math.min(680, Math.max(460, 360 + count * 7))
+    setDims((prev) => ({ ...prev, h: nextHeight }))
+    graphRef.current.d3ReheatSimulation()
   }, [fgData])
 
   /** Custom 2D canvas paint for each graph node (rounded pill, gradient fill, label). */
@@ -270,14 +286,14 @@ export default function RepoDataFlowPanel({
             nodeCanvasObject={drawNode}
             nodePointerAreaPaint={paintPointer}
             linkColor={linkColor}
-            linkWidth={1.8}
+            linkWidth={1.6}
             linkDirectionalArrowLength={5}
             linkDirectionalArrowRelPos={1}
             linkCurvature={0.14}
             linkDirectionalParticles={0}
             linkLabel={(link) => (link && link.label) || ''}
-            cooldownTicks={140}
-            d3VelocityDecay={0.35}
+            cooldownTicks={220}
+            d3VelocityDecay={0.24}
             onEngineStop={() => graphRef.current?.zoomToFit(500, 72)}
           />
         )}

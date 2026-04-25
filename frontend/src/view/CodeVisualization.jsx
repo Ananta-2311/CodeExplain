@@ -52,6 +52,8 @@ export default function CodeVisualization({ code, onGraphData }) {
   const [highlightNodes, setHighlightNodes] = useState(new Set());
   const [highlightLinks, setHighlightLinks] = useState(new Set());
   const graphRef = useRef();
+  const wrapRef = useRef();
+  const [dims, setDims] = useState({ width: 800, height: 580 });
 
   // Fetch graph data from backend
   useEffect(() => {
@@ -94,6 +96,22 @@ export default function CodeVisualization({ code, onGraphData }) {
     fetchGraphData();
   }, [code, onGraphData]);
 
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return undefined;
+    const updateSize = () => {
+      const rect = el.getBoundingClientRect();
+      setDims((prev) => ({
+        ...prev,
+        width: Math.max(420, Math.floor(rect.width)),
+      }));
+    };
+    const ro = new ResizeObserver(updateSize);
+    ro.observe(el);
+    updateSize();
+    return () => ro.disconnect();
+  }, []);
+
   /** Subset of nodes/links when filter is not "all". */
   const filteredData = React.useMemo(() => {
     if (!graphData) return null;
@@ -117,6 +135,23 @@ export default function CodeVisualization({ code, onGraphData }) {
       links: filteredLinks,
     };
   }, [graphData, filterType]);
+
+  useEffect(() => {
+    if (!graphRef.current || !filteredData?.nodes?.length) return;
+    const count = filteredData.nodes.length;
+    const linkDistance = Math.min(180, Math.max(90, 68 + Math.sqrt(count) * 8));
+    const charge = Math.max(-1000, -260 - count * 6);
+    graphRef.current.d3Force('charge', d3.forceManyBody().strength(charge));
+    graphRef.current.d3Force('link', d3.forceLink().id((n) => n.id).distance(linkDistance).strength(0.52));
+    graphRef.current.d3Force('collide', d3.forceCollide((n) => {
+      if (n.group === 'class') return 20;
+      if (n.group === 'function') return 16;
+      return 14;
+    }).strength(0.9));
+    const nextHeight = Math.min(760, Math.max(560, 420 + count * 6));
+    setDims((prev) => ({ ...prev, height: nextHeight }));
+    graphRef.current.d3ReheatSimulation();
+  }, [filteredData]);
 
   /** Focus one node and highlight its incident edges and neighbors. */
   const handleNodeClick = useCallback((node) => {
@@ -377,7 +412,7 @@ export default function CodeVisualization({ code, onGraphData }) {
       </div>
 
       {/* Graph Visualization */}
-      <div style={{ position: 'relative' }}>
+      <div ref={wrapRef} style={{ position: 'relative' }}>
         <ForceGraph2D
           ref={graphRef}
           graphData={filteredData}
@@ -401,19 +436,15 @@ export default function CodeVisualization({ code, onGraphData }) {
           linkLabel={link => link.label || link.type}
           onNodeClick={handleNodeClick}
           onBackgroundClick={handleBackgroundClick}
-          cooldownTicks={100}
           onEngineStop={() => {
             if (graphRef.current) {
               graphRef.current.zoomToFit(400, 20);
             }
           }}
-          d3Force={{
-            linkDistance: 80,
-            chargeStrength: -300,
-            centerStrength: 0.1,
-          }}
-          width={800}
-          height={600}
+          d3VelocityDecay={0.24}
+          cooldownTicks={220}
+          width={dims.width}
+          height={dims.height}
         />
         
         {/* Zoom Controls */}
